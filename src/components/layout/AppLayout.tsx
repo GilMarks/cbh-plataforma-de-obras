@@ -1,0 +1,38 @@
+import { Outlet, Navigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import Topbar from './Topbar';
+import { getCurrentUser } from '../../lib/storage';
+import { SidebarProvider } from '../../contexts/SidebarContext';
+
+export default function AppLayout() {
+  const user = getCurrentUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="h-screen w-full flex overflow-hidden bg-surface-container-low">
+        {/* Sidebar */}
+        <Sidebar />
+
+        {/* Content area */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-surface-container-lowest">
+          {/* Topbar — natural flow, no fixed/absolute */}
+          <Topbar />
+
+          {/* Main scrollable area */}
+          <main
+            className="flex-1 overflow-y-auto"
+            style={{ padding: '40px 48px' }}
+          >
+            <div style={{ maxWidth: '1440px', margin: '0 auto' }}>
+              <Outlet />
+            </div>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}

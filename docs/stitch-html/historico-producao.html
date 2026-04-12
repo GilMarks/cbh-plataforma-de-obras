@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CBH ERP - Histórico de Produção</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .glass-panel { backdrop-filter: blur(24px); background-color: rgba(255, 255, 255, 0.8); }
+        .industrial-shadow { box-shadow: 0px 20px 40px rgba(0, 74, 198, 0.05); }
+        .ghost-border { border: 1px solid rgba(195, 198, 215, 0.15); }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#004ac6",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-container-low": "#f2f4f6",
+                        "primary-container": "#2563eb",
+                        "background": "#f7f9fb",
+                        "tertiary": "#943700",
+                        "on-primary-fixed": "#00174b",
+                        "primary-fixed": "#dbe1ff",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "inverse-primary": "#b4c5ff",
+                        "inverse-on-surface": "#eff1f3",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#eceef0",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "outline": "#737686",
+                        "on-secondary-container": "#57657b",
+                        "on-primary-container": "#eeefff",
+                        "tertiary-container": "#bc4800",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-dim": "#d8dadc",
+                        "surface-tint": "#0053db",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary-container": "#d5e3fd",
+                        "on-surface": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "secondary-fixed": "#d5e3fd",
+                        "on-background": "#191c1e",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-surface-variant": "#434655",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "outline-variant": "#c3c6d7",
+                        "surface-variant": "#e0e3e5",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#515f74",
+                        "on-tertiary-container": "#ffede6",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#b9c7e0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar (Tactile Updated Version) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 z-40 bg-slate-100 dark:bg-slate-900 w-64 shadow-xl border-r border-slate-200/50">
+<div class="mb-8 px-2">
+<h2 class="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tighter">CBH Business Hub</h2>
+<div class="mt-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-white font-bold">RM</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">Ricardo Mendes</p>
+<p class="text-[10px] text-slate-500 font-medium uppercase">Diretor de Produção</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-xs font-bold uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 rounded-lg shadow-sm font-bold transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="factory">factory</span>
+<span class="text-xs font-bold uppercase tracking-wider">Factory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="foundation">foundation</span>
+<span class="text-xs font-bold uppercase tracking-wider">Construction</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="text-xs font-bold uppercase tracking-wider">Procurement</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-xs font-bold uppercase tracking-wider">Finance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="text-xs font-bold uppercase tracking-wider">HR</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-xs font-bold uppercase tracking-wider">Users</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4">
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-xs font-bold uppercase tracking-wider">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-xs font-bold uppercase tracking-wider">Sair</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm shadow-blue-900/5 sticky top-0 z-40 ml-64 w-[calc(100%-16rem)] h-16 flex justify-between items-center px-8">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/10 transition-all outline-none text-on-surface" placeholder="Pesquisar ordens, peças ou obras..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-6 w-[1px] bg-slate-200 mx-2"></div>
+<button class="flex items-center gap-2 pl-2 pr-1 py-1 hover:bg-slate-50 rounded-full transition-all">
+<span class="text-sm font-semibold text-slate-700">Unidade SP-01</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">expand_more</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<main class="ml-64 p-8 min-h-screen bg-[#eef2f7]">
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div class="space-y-1">
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Histórico de Produção</h1>
+<p class="text-on-surface-variant font-medium text-sm">Acompanhe e audite as peças produzidas por obra, data e responsável.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant font-semibold text-sm rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[1.2rem]">file_download</span>
+                    Exportar CSV
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant font-semibold text-sm rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[1.2rem]">picture_as_pdf</span>
+                    Exportar PDF
+                </button>
+</div>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-6 rounded-xl industrial-shadow ghost-border flex items-center gap-4">
+<div class="p-3 bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-3xl">inventory_2</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Total Produzido</p>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">3,420</h3>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl industrial-shadow ghost-border flex items-center gap-4">
+<div class="p-3 bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-3xl">view_quilt</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Painéis</p>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">1,540</h3>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl industrial-shadow ghost-border flex items-center gap-4">
+<div class="p-3 bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-3xl">view_week</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Pilares</p>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">1,020</h3>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl industrial-shadow ghost-border flex items-center gap-4">
+<div class="p-3 bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-3xl">grid_view</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Sapatas</p>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">860</h3>
+</div>
+</div>
+</div>
+<!-- Filters Section -->
+<div class="bg-surface-container-lowest p-6 rounded-xl industrial-shadow ghost-border mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant px-1">BUSCA RÁPIDA</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full pl-9 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Pesquisar por ID..." type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant px-1">PERÍODO</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">calendar_today</span>
+<input class="w-full pl-9 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="01/01/2024 - 31/01/2024" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant px-1">OBRA DE DESTINO</label>
+<select class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/10 outline-none appearance-none">
+<option>Todas as Obras</option>
+<option>Residencial Aurora</option>
+<option>Edifício Horizon</option>
+<option>Galpão Logístico Industrial</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant px-1">RESPONSÁVEL</label>
+<select class="w-full px-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/10 outline-none appearance-none">
+<option>Todos os Responsáveis</option>
+<option>Carlos Oliveira</option>
+<option>Ana Paula Souza</option>
+<option>Marcos Vinicius</option>
+</select>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">Aplicar Filtros</button>
+<button class="px-3 py-2 text-primary font-bold text-xs uppercase tracking-wider hover:bg-primary/5 rounded-lg transition-colors">Limpar</button>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest rounded-xl industrial-shadow ghost-border overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-outline-variant/10">
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest">Data de Registro</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest">ID Peça / Ordem</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest">Tipo de Peça</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest">Especificação</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest">Obra de Destino</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest">Responsável</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest text-center">Qtd. Produzida</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant font-medium">12 Mai 2024, 14:20</td>
+<td class="px-6 py-4 text-sm font-bold text-primary">PRD-1024</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-sm bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-tight">Painel</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Painel 5x3m Liso - T20</td>
+<td class="px-6 py-4 text-sm text-on-surface-variant">Residencial Aurora</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<img alt="Worker" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTQU62xjNPaOjo-q6itVnTrTP4LGlck2IlItzEd9OXhZ4uuGAN2pqL4CyWUF6HcD32BO9DjNHUAVHd19nR8jZkH2e4_RHLHr-dNsKC7DU5o5hVD1oK8G7aIQDpqD530ZVTtFAHvbdB3FQL1Irg-KJUdyRnta93hP2kAjIFyE9ctc2etuxC9LvCnXQfm9YV5H5AkiGRml1QlBd-oa7AqSe-z6BRzAFdKgoooHFLRT8Qn1BjL1Mfr1_cWxcaFs8nm3_9v2Sovyy5g8E"/>
+<span class="text-sm text-on-surface">Carlos Oliveira</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-extrabold text-center text-on-surface">12</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant font-medium">12 Mai 2024, 13:45</td>
+<td class="px-6 py-4 text-sm font-bold text-primary">PRD-1023</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-sm bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-tight">Pilar</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Pilar Estrutural 40x40cm</td>
+<td class="px-6 py-4 text-sm text-on-surface-variant">Edifício Horizon</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<img alt="Worker" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBw7IbBHVKz2xpFqJGXKzKFMp_f9iQ0pjdz3Jdj9nqJ0LAhczTlfgbR-rvwBrGS3x0tibxKGxLE49xfvJ3tcOPm-YL9aUY0fntvE8gx_OZ7-4UaEi2ylTN_BxpDrTfIfQwQ8IaWsXvWYrGwl0np4BRZYexSxM2uhUXl6Y4B1DHDEqVFv5XT_Dm_gwVlPgGGx0w3VvspS6xzO7Axv3UGt_qPlcxFA4qYtmOmpTa08o97zbfLVrMix3tgxpppFZ6aFREvGV_CZxL6d9A"/>
+<span class="text-sm text-on-surface">Ana Paula Souza</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-extrabold text-center text-on-surface">08</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-surface-container-low flex items-center justify-between border-t border-outline-variant/10">
+<p class="text-xs font-medium text-on-surface-variant">Mostrando <span class="font-bold">1-10</span> de <span class="font-bold">245</span> registros</p>
+<div class="flex items-center gap-1">
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-colors text-on-surface-variant disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-lg text-xs font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-lg text-xs font-bold transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-lg text-xs font-bold transition-colors">3</button>
+<span class="px-1 text-slate-400">...</span>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-lg text-xs font-bold transition-colors">25</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

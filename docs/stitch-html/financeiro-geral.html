@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Financeiro - Visão Geral | CBH</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#bc4800",
+                        "surface-variant": "#e0e3e5",
+                        "secondary": "#515f74",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "secondary-container": "#d5e3fd",
+                        "inverse-primary": "#b4c5ff",
+                        "primary": "#004ac6",
+                        "on-background": "#191c1e",
+                        "error": "#ba1a1a",
+                        "background": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#ffdbcd",
+                        "outline-variant": "#c3c6d7",
+                        "tertiary": "#943700",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-primary-fixed": "#00174b",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "outline": "#737686",
+                        "secondary-fixed": "#d5e3fd",
+                        "surface-dim": "#d8dadc",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-container-low": "#f2f4f6",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary-container": "#ffede6",
+                        "on-secondary-container": "#57657b",
+                        "on-surface": "#191c1e",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#0053db",
+                        "surface-bright": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-surface-variant": "#434655",
+                        "surface-container": "#eceef0",
+                        "primary-container": "#2563eb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-custom-surface { background-color: #f7f9fb; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="w-[300px] h-screen fixed left-0 top-0 bg-[#f2f4f6] dark:bg-[#0f172a] flex flex-col p-6 space-y-4 z-40 transition-all ease-in-out">
+<div class="flex items-center space-x-3 mb-8">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-white font-black">
+<span class="material-symbols-outlined">architecture</span>
+</div>
+<div>
+<h1 class="text-lg font-black text-[#191c1e] dark:text-white leading-none">CBH Admin</h1>
+<p class="text-[0.7rem] font-medium text-secondary uppercase tracking-widest">Industrial Precision</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center space-x-3 px-4 py-3 text-[#57657b] hover:translate-x-1 transition-transform duration-200 hover:bg-gray-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium text-[0.875rem]">Overview</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-[#57657b] hover:translate-x-1 transition-transform duration-200 hover:bg-gray-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">architecture</span>
+<span class="font-medium text-[0.875rem]">Wall Assemblies</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 bg-white text-[#004ac6] rounded-lg shadow-sm font-semibold hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-medium text-[0.875rem]">Financials</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-[#57657b] hover:translate-x-1 transition-transform duration-200 hover:bg-gray-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium text-[0.875rem]">Team</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-[#57657b] hover:translate-x-1 transition-transform duration-200 hover:bg-gray-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-medium text-[0.875rem]">Inventory</span>
+</a>
+</nav>
+<button class="mt-4 bg-gradient-to-r from-primary to-primary-container text-white py-3 px-4 rounded-lg flex items-center justify-center space-x-2 font-semibold shadow-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="text-[0.875rem]">New Project</span>
+</button>
+<div class="pt-6 mt-auto border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center space-x-3 px-4 py-2 text-[#57657b] hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined text-[1.25rem]">help</span>
+<span class="text-[0.875rem]">Support</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-error hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined text-[1.25rem]">logout</span>
+<span class="text-[0.875rem]">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[300px] min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="w-full h-16 bg-[#ffffff] dark:bg-[#0f172a] shadow-sm dark:shadow-none sticky top-0 z-50 flex justify-between items-center px-8 backdrop-blur-md">
+<div class="flex items-center space-x-8">
+<span class="text-xl font-bold tracking-tighter text-[#191c1e] dark:text-white">Construction Business Hub</span>
+<nav class="hidden md:flex items-center space-x-6">
+<a class="text-[#57657b] font-semibold text-sm tracking-tight hover:text-[#2563eb] transition-colors" href="#">Dashboard</a>
+<a class="text-[#57657b] font-semibold text-sm tracking-tight hover:text-[#2563eb] transition-colors" href="#">Projects</a>
+<a class="text-[#004ac6] border-b-2 border-[#004ac6] pb-5 font-semibold text-sm tracking-tight" href="#">Procurement</a>
+<a class="text-[#57657b] font-semibold text-sm tracking-tight hover:text-[#2563eb] transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<button class="p-2 text-[#57657b] hover:text-primary transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#57657b] hover:text-primary transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional male executive portrait in modern office setting with natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO1kJIvk-2rkFr6nfxpb9u0NXu_uR5YyhAdb82lvNA6TOlWONiGD908gCu2JkvnYv6vnkaVs8e7nY5ZkAEQ_QoysPM53NUK6SXlLBXON8CosHW5E2BDN1bBEPvsqwhOpqJi-9PPn3VS73um41ooeU6QdAVmxje55Zw9pxh3JR_rY-kFxfZ5rr06l7NBdCRx0M_u58jReXCnaElWhk_JVqArN9bvSfkd_YRgvOJv8RQcKTRPw7PIH0ZIvXuFhTb_QAcCGrYR3unebk"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-8 bg-[#f7f9fb] flex-1">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-2xl font-bold text-on-surface tracking-tight leading-tight">Visão Geral Financeira</h2>
+<p class="text-on-surface-variant text-sm mt-1">Monitoramento em tempo real da saúde fiscal e orçamentos.</p>
+</div>
+<div class="flex items-center space-x-3 bg-surface-container-lowest p-2 rounded-xl shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-secondary text-sm">calendar_month</span>
+<span class="text-sm font-medium text-on-surface">01 Out 2023 - 31 Mar 2024</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer">expand_more</span>
+</div>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<span class="text-[0.65rem] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-sm">+12%</span>
+</div>
+<p class="text-on-surface-variant text-[0.75rem] font-bold uppercase tracking-wider">Fluxo de Caixa</p>
+<p class="text-2xl font-black text-on-surface mt-1 tracking-tight">R$ 2.450.800,00</p>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-[0.65rem] font-bold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-sm">14 faturas</span>
+</div>
+<p class="text-on-surface-variant text-[0.75rem] font-bold uppercase tracking-wider">Contas a Receber</p>
+<p class="text-2xl font-black text-on-surface mt-1 tracking-tight">R$ 840.250,00</p>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">request_quote</span>
+</div>
+<span class="text-[0.65rem] font-bold text-error bg-error-container/20 px-2 py-1 rounded-sm">-R$ 12k hoje</span>
+</div>
+<p class="text-on-surface-variant text-[0.75rem] font-bold uppercase tracking-wider">Contas a Pagar</p>
+<p class="text-2xl font-black text-on-surface mt-1 tracking-tight">R$ 412.000,00</p>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-[0.75rem] font-bold uppercase tracking-wider">Saldo Projetado</p>
+<p class="text-2xl font-black text-on-surface mt-1 tracking-tight">R$ 2.879.050,00</p>
+</div>
+</div>
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+<!-- Bar Chart: Receitas vs Despesas -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/5 shadow-sm">
+<div class="flex justify-between items-center mb-10">
+<h3 class="font-bold text-lg text-on-surface">Receitas vs Despesas</h3>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-1.5">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-[0.65rem] font-bold uppercase text-on-surface-variant">Receitas</span>
+</div>
+<div class="flex items-center space-x-1.5">
+<div class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></div>
+<span class="text-[0.65rem] font-bold uppercase text-on-surface-variant">Despesas</span>
+</div>
+</div>
+</div>
+<!-- Mock Chart Visualization -->
+<div class="h-[300px] w-full flex items-end justify-between px-2 space-x-6">
+<div class="flex-1 flex flex-col items-center group cursor-pointer">
+<div class="w-full flex justify-center items-end space-x-1 h-full">
+<div class="bg-primary w-full h-[60%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+<div class="bg-secondary-fixed-dim w-full h-[40%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+</div>
+<span class="text-[0.7rem] font-medium text-on-surface-variant mt-4">Out</span>
+</div>
+<div class="flex-1 flex flex-col items-center group cursor-pointer">
+<div class="w-full flex justify-center items-end space-x-1 h-full">
+<div class="bg-primary w-full h-[75%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+<div class="bg-secondary-fixed-dim w-full h-[30%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+</div>
+<span class="text-[0.7rem] font-medium text-on-surface-variant mt-4">Nov</span>
+</div>
+<div class="flex-1 flex flex-col items-center group cursor-pointer">
+<div class="w-full flex justify-center items-end space-x-1 h-full">
+<div class="bg-primary w-full h-[65%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+<div class="bg-secondary-fixed-dim w-full h-[55%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+</div>
+<span class="text-[0.7rem] font-medium text-on-surface-variant mt-4">Dez</span>
+</div>
+<div class="flex-1 flex flex-col items-center group cursor-pointer">
+<div class="w-full flex justify-center items-end space-x-1 h-full">
+<div class="bg-primary w-full h-[85%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+<div class="bg-secondary-fixed-dim w-full h-[45%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+</div>
+<span class="text-[0.7rem] font-medium text-on-surface-variant mt-4">Jan</span>
+</div>
+<div class="flex-1 flex flex-col items-center group cursor-pointer">
+<div class="w-full flex justify-center items-end space-x-1 h-full">
+<div class="bg-primary w-full h-[70%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+<div class="bg-secondary-fixed-dim w-full h-[50%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+</div>
+<span class="text-[0.7rem] font-medium text-on-surface-variant mt-4">Fev</span>
+</div>
+<div class="flex-1 flex flex-col items-center group cursor-pointer">
+<div class="w-full flex justify-center items-end space-x-1 h-full">
+<div class="bg-primary w-full h-[95%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+<div class="bg-secondary-fixed-dim w-full h-[35%] rounded-t-sm transition-all group-hover:opacity-80"></div>
+</div>
+<span class="text-[0.7rem] font-medium text-on-surface-variant mt-4">Mar</span>
+</div>
+</div>
+</div>
+<!-- Doughnut Chart: Distribuição de Custos -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/5 shadow-sm">
+<h3 class="font-bold text-lg text-on-surface mb-10">Distribuição de Custos</h3>
+<div class="flex items-center justify-between">
+<!-- Doughnut Mockup -->
+<div class="relative w-48 h-48">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#e6e8ea" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#004ac6" stroke-dasharray="45, 100" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#2563eb" stroke-dasharray="25, 100" stroke-dashoffset="-45" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#943700" stroke-dasharray="15, 100" stroke-dashoffset="-70" stroke-width="4"></circle>
+<circle cx="18" cy="18" fill="transparent" r="16" stroke="#515f74" stroke-dasharray="15, 100" stroke-dashoffset="-85" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-black text-on-surface">100%</span>
+<span class="text-[0.6rem] font-bold text-on-surface-variant uppercase">Total</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="flex-1 ml-10 space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-3">
+<div class="w-3 h-3 rounded-sm bg-primary"></div>
+<span class="text-sm font-medium text-on-surface">Insumos</span>
+</div>
+<span class="text-sm font-bold text-on-surface">45%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-3">
+<div class="w-3 h-3 rounded-sm bg-primary-container"></div>
+<span class="text-sm font-medium text-on-surface">Mão de Obra</span>
+</div>
+<span class="text-sm font-bold text-on-surface">25%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-3">
+<div class="w-3 h-3 rounded-sm bg-tertiary"></div>
+<span class="text-sm font-medium text-on-surface">Operacional</span>
+</div>
+<span class="text-sm font-bold text-on-surface">15%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-3">
+<div class="w-3 h-3 rounded-sm bg-secondary"></div>
+<span class="text-sm font-medium text-on-surface">Impostos</span>
+</div>
+<span class="text-sm font-bold text-on-surface">15%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Data Table Section -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/5 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="font-bold text-lg text-on-surface">Últimas Movimentações</h3>
+<button class="text-primary text-sm font-bold hover:underline">Ver Relatório Completo</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-high text-on-surface-variant">
+<th class="px-6 py-4 text-[0.7rem] font-bold uppercase tracking-widest">Data</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold uppercase tracking-widest">Descrição</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold uppercase tracking-widest">Categoria</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold uppercase tracking-widest">Obra</th>
+<th class="px-6 py-4 text-[0.7rem] font-bold uppercase tracking-widest text-right">Valor</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant">24/03/2024</td>
+<td class="px-6 py-4 text-sm font-semibold text-on-surface">Fornecimento de Aço Estrutural</td>
+<td class="px-6 py-4">
+<span class="text-[0.65rem] font-bold uppercase px-2 py-1 bg-secondary-fixed text-on-secondary-fixed-variant rounded-sm">Insumos</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Residencial Aurora</td>
+<td class="px-6 py-4 text-sm font-black text-right text-error">- R$ 124.500,00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant">22/03/2024</td>
+<td class="px-6 py-4 text-sm font-semibold text-on-surface">Pagamento Milestone #03</td>
+<td class="px-6 py-4">
+<span class="text-[0.65rem] font-bold uppercase px-2 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-sm">Receita</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Corporate Tower SP</td>
+<td class="px-6 py-4 text-sm font-black text-right text-green-600">+ R$ 450.000,00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant">20/03/2024</td>
+<td class="px-6 py-4 text-sm font-semibold text-on-surface">Folha de Pagamento - Equipe A</td>
+<td class="px-6 py-4">
+<span class="text-[0.65rem] font-bold uppercase px-2 py-1 bg-secondary-fixed text-on-secondary-fixed-variant rounded-sm">Mão de Obra</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Geral Admin</td>
+<td class="px-6 py-4 text-sm font-black text-right text-error">- R$ 82.300,00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant">18/03/2024</td>
+<td class="px-6 py-4 text-sm font-semibold text-on-surface">Venda Painéis Termoacústicos</td>
+<td class="px-6 py-4">
+<span class="text-[0.65rem] font-bold uppercase px-2 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-sm">Vendas</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Logistics Hub Sul</td>
+<td class="px-6 py-4 text-sm font-black text-right text-green-600">+ R$ 215.800,00</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-sm text-on-surface-variant">15/03/2024</td>
+<td class="px-6 py-4 text-sm font-semibold text-on-surface">Manutenção Maquinário CNC</td>
+<td class="px-6 py-4">
+<span class="text-[0.65rem] font-bold uppercase px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-sm">Operacional</span>
+</td>
+<td class="px-6 py-4 text-sm text-on-surface">Fábrica Matriz</td>
+<td class="px-6 py-4 text-sm font-black text-right text-error">- R$ 14.200,00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Hidden on Finance detailed screens as per rule, but if needed for global tasks) -->
+<!-- Suppression logic: If designing detail/transactional screens, suppress. Showing intent here as a "Search" shortcut if needed -->
+</body></html>

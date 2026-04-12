@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Estoque de Peças e Pátio | Tectonic ERP</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#0d1c2f",
+                      "primary-fixed": "#dbe1ff",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "surface-bright": "#f7f9fb",
+                      "secondary-fixed": "#d5e3fd",
+                      "surface-container": "#eceef0",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "surface-tint": "#0053db",
+                      "on-secondary-container": "#57657b",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed-variant": "#3a485c",
+                      "on-primary-container": "#eeefff",
+                      "on-error-container": "#93000a",
+                      "on-surface-variant": "#434655",
+                      "inverse-on-surface": "#eff1f3",
+                      "tertiary-fixed": "#ffdbcd",
+                      "surface-container-highest": "#e0e3e5",
+                      "inverse-primary": "#b4c5ff",
+                      "error": "#ba1a1a",
+                      "background": "#f7f9fb",
+                      "surface": "#f7f9fb",
+                      "secondary-fixed-dim": "#b9c7e0",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "on-background": "#191c1e",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-container": "#ffede6",
+                      "surface-dim": "#d8dadc",
+                      "primary": "#004ac6",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-high": "#e6e8ea",
+                      "on-primary-fixed": "#00174b",
+                      "surface-variant": "#e0e3e5",
+                      "outline": "#737686",
+                      "secondary": "#515f74",
+                      "tertiary": "#943700",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "outline-variant": "#c3c6d7",
+                      "secondary-container": "#d5e3fd",
+                      "tertiary-container": "#bc4800",
+                      "on-tertiary-fixed": "#360f00",
+                      "primary-container": "#2563eb",
+                      "inverse-surface": "#2d3133",
+                      "surface-container-low": "#f2f4f6",
+                      "on-surface": "#191c1e"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(24px); }
+        .industrial-shadow { box-shadow: 0px 20px 40px rgba(0, 74, 198, 0.05); }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar (JSON Structure) -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col w-[300px] h-screen bg-slate-100 dark:bg-slate-900 font-inter body-md on-surface-variant">
+<div class="p-8 pb-10">
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 uppercase">Tectonic ERP</h1>
+<p class="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Gestão de Pátio</p>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<!-- Active Tab: Estoque -->
+<a class="flex items-center gap-3 px-4 py-3 text-blue-700 dark:text-blue-400 font-semibold border-r-4 border-blue-700 bg-blue-50/50 dark:bg-blue-900/20 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">inventory_2</span>
+<span class="font-medium">Estoque</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">warehouse</span>
+<span class="font-medium">Pátio</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">local_shipping</span>
+<span class="font-medium">Expedição</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">architecture</span>
+<span class="font-medium">Obras</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
+<span class="font-medium">Configurações</span>
+</a>
+</nav>
+<div class="p-6 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Nova Ordem</span>
+</button>
+</div>
+<div class="px-4 pb-8 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm">Suporte</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm">Sair</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar (JSON Structure) -->
+<header class="fixed top-0 right-0 left-[300px] z-30 flex justify-between items-center px-8 h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/15">
+<div class="flex items-center gap-8">
+<span class="text-lg font-black text-blue-700 uppercase tracking-tight">Logística &amp; Pátio</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-blue-700 font-semibold border-b-2 border-blue-700 pb-2 transition-all" href="#">Visão Geral</a>
+<a class="text-slate-500 hover:text-blue-600 transition-all" href="#">Relatórios</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex items-center bg-surface-container-low rounded-full px-4 py-1.5 border border-outline-variant/15">
+<span class="material-symbols-outlined text-slate-400 text-lg">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-slate-400" placeholder="Buscar..." type="text"/>
+</div>
+<div class="flex items-center gap-3 px-4 border-l border-slate-200/20">
+<button class="text-slate-500 hover:text-blue-700 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+</button>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+<img class="w-full h-full object-cover" data-alt="Profile portrait of a logistics manager in a modern office, professional and confident" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGSooR1uM_nNmJ_wVmIJZ7GcqAlsz4wWUp9_HMzUsyr_Nzfgxv9-WR1hHs5TJear3RerP1eCHSjVNy5JTEisKBIYV5fHVAB6b7fQzodBGfAj1DJXr0eqau5i34kcUcBJX-33DDUHF7BZYNF3sU4BP83DMulxcLy7t5rzx6mogXCSRhNxDPFf9xYZOW9rzM-0AlE3M7gpOXYz2qDb1Db5-5vbSwtcx-SzvBNHwWhFFKzeayoopkEZ1N5J0Nt_XF-sCVIpK3Zy-ZUdg"/>
+</div>
+<span class="text-sm font-semibold text-slate-700">João Silva</span>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[300px] pt-24 px-8 pb-20 bg-[#f7f9fb] min-h-screen">
+<!-- Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Estoque de Peças e Pátio</h1>
+<p class="text-on-surface-variant mt-1 text-base">Gerencie o inventário de peças fabricadas e realize a expedição para as obras.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 active:scale-95 transition-all">
+<span class="material-symbols-outlined">local_shipping</span>
+<span>Nova Expedição em Lote</span>
+</button>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 industrial-shadow">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-3xl">package</span>
+</div>
+<div>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Total no Pátio</p>
+<h3 class="text-3xl font-black text-on-surface">1.248 <span class="text-sm font-normal text-slate-400">unid</span></h3>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 industrial-shadow">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+<span class="material-symbols-outlined text-3xl">schedule</span>
+</div>
+<div>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Aguardando Embarque</p>
+<h3 class="text-3xl font-black text-on-surface">84 <span class="text-sm font-normal text-slate-400">unid</span></h3>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 industrial-shadow">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined text-3xl">check_circle</span>
+</div>
+<div>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Enviados Hoje</p>
+<h3 class="text-3xl font-black text-on-surface">312 <span class="text-sm font-normal text-slate-400">unid</span></h3>
+</div>
+</div>
+</div>
+</div>
+<!-- Toolbar -->
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 industrial-shadow mb-6 flex flex-wrap items-center gap-4">
+<div class="flex-1 min-w-[280px] relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all" placeholder="Buscar por Código ou Tipo..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<select class="bg-surface-container-low border border-outline-variant/30 rounded-lg py-2.5 px-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+<option>Todas as Obras</option>
+<option>Residencial Aurora</option>
+<option>Centro Logístico SP</option>
+<option>Edifício Horizon</option>
+</select>
+<select class="bg-surface-container-low border border-outline-variant/30 rounded-lg py-2.5 px-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+<option>Todos os Tipos</option>
+<option>Painéis</option>
+<option>Pilares</option>
+<option>Sapatas</option>
+</select>
+<select class="bg-surface-container-low border border-outline-variant/30 rounded-lg py-2.5 px-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+<option>Todos os Status</option>
+<option>Em Estoque</option>
+<option>Enviado</option>
+<option>Montado</option>
+</select>
+<button class="p-2.5 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</div>
+<!-- Inventory Table -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 industrial-shadow overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high">
+<th class="px-6 py-4 w-12">
+<input class="rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Código</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Especificação &amp; Tipo</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Obra</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Data Prod.</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Status</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-blue-50/20 transition-colors group">
+<td class="px-6 py-5">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-5 font-bold text-on-surface">PNL-2045-A</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Painel Estrutural H240</span>
+<span class="text-xs text-on-surface-variant">Concreto Pré-moldado FC40</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Residencial Aurora</td>
+<td class="px-6 py-5 text-sm">12/05/2024</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-700 uppercase">Em Estoque</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-lg text-xs font-bold hover:opacity-90 active:scale-95 transition-all">Despachar</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-blue-50/20 transition-colors group">
+<td class="px-6 py-5">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-5 font-bold text-on-surface">PNL-2046-A</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Painel Estrutural H240</span>
+<span class="text-xs text-on-surface-variant">Concreto Pré-moldado FC40</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Residencial Aurora</td>
+<td class="px-6 py-5 text-sm">12/05/2024</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-700 uppercase">Em Estoque</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-lg text-xs font-bold hover:opacity-90 active:scale-95 transition-all">Despachar</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-blue-50/20 transition-colors group">
+<td class="px-6 py-5">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-5 font-bold text-on-surface">PIL-882-X</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Pilar Seção Quadrada 40x40</span>
+<span class="text-xs text-on-surface-variant">Concreto Armado</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Centro Logístico SP</td>
+<td class="px-6 py-5 text-sm">10/05/2024</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase">Enviado</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-blue-50/20 transition-colors group">
+<td class="px-6 py-5">
+<input class="rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-5 font-bold text-on-surface">SAP-012-K</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Sapata Isolada 120x120</span>
+<span class="text-xs text-on-surface-variant">Fundação</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Edifício Horizon</td>
+<td class="px-6 py-5 text-sm">08/05/2024</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-700 uppercase">Montado</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination-ish footer -->
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center text-sm">
+<span class="text-on-surface-variant font-medium">Mostrando 4 de 1.248 peças</span>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-primary bg-primary text-white font-bold text-xs">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-highest transition-colors font-bold text-xs">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-highest transition-colors font-bold text-xs">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Batch Action Floating Panel -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-x-[150px] z-50 flex items-center gap-8 bg-inverse-surface text-inverse-on-surface px-8 py-4 rounded-full industrial-shadow border border-white/10 glass-panel !opacity-100">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-sm font-bold">3</div>
+<p class="font-bold text-base tracking-tight">peças selecionadas</p>
+</div>
+<div class="h-6 w-px bg-white/20"></div>
+<div class="flex items-center gap-4">
+<button class="text-sm font-semibold hover:text-primary transition-colors">Cancelar Seleção</button>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-full font-bold shadow-lg shadow-blue-500/30 hover:brightness-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg">local_shipping</span>
+<span>Despachar Peças Selecionadas</span>
+</button>
+</div>
+</div>
+</body></html>

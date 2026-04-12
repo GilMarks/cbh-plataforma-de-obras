@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configurações de Perfil | Industrial Precision</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#b9c7e0",
+                      "on-secondary-container": "#57657b",
+                      "primary-fixed": "#dbe1ff",
+                      "surface-variant": "#e0e3e5",
+                      "surface-bright": "#f7f9fb",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-tertiary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "secondary": "#515f74",
+                      "surface-dim": "#d8dadc",
+                      "on-surface": "#191c1e",
+                      "on-secondary-fixed": "#0d1c2f",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed": "#360f00",
+                      "on-surface-variant": "#434655",
+                      "tertiary-container": "#bc4800",
+                      "secondary-container": "#d5e3fd",
+                      "on-primary-container": "#eeefff",
+                      "outline": "#737686",
+                      "surface-tint": "#0053db",
+                      "surface-container-low": "#f2f4f6",
+                      "on-primary-fixed": "#00174b",
+                      "inverse-surface": "#2d3133",
+                      "inverse-on-surface": "#eff1f3",
+                      "surface-container": "#eceef0",
+                      "inverse-primary": "#b4c5ff",
+                      "surface-container-high": "#e6e8ea",
+                      "surface-container-highest": "#e0e3e5",
+                      "primary-container": "#2563eb",
+                      "primary": "#004ac6",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-container": "#ffede6",
+                      "tertiary-fixed": "#ffdbcd",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "surface": "#f7f9fb",
+                      "secondary-fixed": "#d5e3fd",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "on-background": "#191c1e",
+                      "on-error": "#ffffff",
+                      "background": "#f7f9fb",
+                      "tertiary": "#943700",
+                      "outline-variant": "#c3c6d7",
+                      "on-secondary-fixed-variant": "#3a485c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+      </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #eef2f7; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar Integration from SCREEN_75 -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 z-40 bg-slate-100 dark:bg-slate-900 w-64">
+<div class="mb-8 px-2">
+<h2 class="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tighter">Industrial Precision</h2>
+<div class="mt-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-white font-bold">PS</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">Planta Sul</p>
+<p class="text-[10px] text-slate-500 font-medium uppercase">Turno A</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-xs font-bold uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="factory">factory</span>
+<span class="text-xs font-bold uppercase tracking-wider">Produção</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-xs font-bold uppercase tracking-wider">Estoque</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+<span class="text-xs font-bold uppercase tracking-wider">Qualidade</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="engineering">engineering</span>
+<span class="text-xs font-bold uppercase tracking-wider">Manutenção</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4">
+<a class="flex items-center gap-3 px-3 py-3 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 rounded-lg shadow-sm font-bold transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-xs font-bold uppercase tracking-wider">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-xs font-bold uppercase tracking-wider">Sair</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen bg-[#eef2f7]">
+<!-- TopNavBar Component -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-8 z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Buscar configurações..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-slate-500 hover:text-blue-500 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-500 hover:text-blue-500 transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200"></div>
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold text-slate-700">Painel de Controle</span>
+<span class="material-symbols-outlined text-slate-400" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="pt-24 px-12 max-w-6xl mx-auto">
+<div class="mb-10">
+<h2 class="text-3xl font-extrabold tracking-tight text-on-surface">Configurações de Perfil</h2>
+<p class="text-on-surface-variant font-medium mt-1">Gerencie suas informações e preferências</p>
+</div>
+<div class="space-y-8">
+<!-- Card 1: Personal Data -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+<div class="flex items-start justify-between mb-8">
+<div class="flex items-center gap-8">
+<div class="relative group">
+<div class="w-24 h-24 rounded-full bg-primary-fixed-dim flex items-center justify-center text-primary text-3xl font-bold border-4 border-white shadow-lg overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl4kgo3M6x63AGtRUcZ8rivLTu6kaWIza3Ybm01jWJcY17MqSDP1ts3UuSzPHHc3Cu_uLBVE3ZdMU9SeBL5Kt5fqV0KPvSlB4GsmKp0tpluZF8R0WELcEjsVDZbZ6ToYVrEw4wjSAgjzgpN85B9x_hqtRv0Dx0Y-OuCx5Ei5kuA4xeRtNxM-sWwgqfDMkklHIw27xLzKTqyhOaUJ3D6VRXw1t-1uQ6bV5v3NDvgfVB3z-L7ZvlnV5gGGPiqZu-jXBd9rqPH58GtbI"/>
+</div>
+<button class="absolute -bottom-1 -right-1 bg-primary text-white p-2 rounded-full shadow-md hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="photo_camera">photo_camera</span>
+</button>
+</div>
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="text-xl font-bold text-on-surface">Marcos Silveira</h3>
+<span class="px-2 py-0.5 rounded-sm bg-secondary-fixed text-on-secondary-fixed-variant text-[10px] font-bold tracking-widest uppercase">MASTER</span>
+</div>
+<p class="text-on-surface-variant text-sm mb-4">Atualize sua foto e detalhes pessoais aqui.</p>
+<button class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg text-xs font-bold hover:bg-surface-container-high transition-colors">
+                                    Alterar Foto
+                                </button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-x-8 gap-y-6">
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nome Completo</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" type="text" value="Marcos Silveira de Alcantara"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Email Corporativo</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" type="email" value="marcos.silveira@erbindustrial.com.br"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Telefone</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" type="text" value="+55 (11) 98765-4321"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Departamento</label>
+<select class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all appearance-none">
+<option>Operações Industriais</option>
+<option>Logística</option>
+<option>Engenharia Civil</option>
+<option>Administrativo</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Card 2: Security -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+<h3 class="text-lg font-bold text-on-surface">Segurança</h3>
+</div>
+<div class="grid grid-cols-3 gap-6">
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Senha Atual</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="••••••••" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nova Senha</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="Mínimo 8 caracteres" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Confirmar Nova Senha</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/15 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="Repita a nova senha" type="password"/>
+</div>
+</div>
+</section>
+<!-- Card 3: System Preferences -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="tune">tune</span>
+<h3 class="text-lg font-bold text-on-surface">Preferências do Sistema</h3>
+</div>
+<div class="space-y-8">
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Tema da Interface</label>
+<div class="grid grid-cols-3 gap-4">
+<button class="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="light_mode">light_mode</span>
+<span class="text-sm font-bold text-primary">Claro</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-outline-variant/20 bg-surface-container-low hover:border-primary/40 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl" data-icon="dark_mode">dark_mode</span>
+<span class="text-sm font-bold text-on-surface-variant">Escuro</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-outline-variant/20 bg-surface-container-low hover:border-primary/40 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl" data-icon="desktop_windows">desktop_windows</span>
+<span class="text-sm font-bold text-on-surface-variant">Sistema</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Notificações no Navegador</p>
+<p class="text-xs text-on-surface-variant">Receba alertas de novas ordens e prazos</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+</div>
+<div class="mt-10 flex items-center justify-between pb-10">
+<div class="flex items-center gap-2 text-slate-500">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+<span class="text-xs font-medium italic">Última alteração em 12/10/2023 às 14:35</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
+            Descartar Alterações
+        </button>
+<button class="px-8 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 hover:brightness-110 active:scale-[0.98] transition-all">
+            Salvar Perfil
+        </button>
+</div>
+</div></div>
+<!-- Bottom Action Bar -->
+</main>
+</body></html>

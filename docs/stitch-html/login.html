@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-tint": "#0053db",
+          "surface-bright": "#f7f9fb",
+          "on-surface": "#191c1e",
+          "on-error-container": "#93000a",
+          "primary-container": "#2563eb",
+          "surface-container": "#eceef0",
+          "surface": "#f7f9fb",
+          "secondary-fixed-dim": "#b9c7e0",
+          "on-surface-variant": "#434655",
+          "tertiary-fixed-dim": "#ffb596",
+          "primary-fixed-dim": "#b4c5ff",
+          "on-tertiary-fixed-variant": "#7d2d00",
+          "on-primary-fixed": "#00174b",
+          "inverse-on-surface": "#eff1f3",
+          "on-primary-fixed-variant": "#003ea8",
+          "tertiary": "#943700",
+          "surface-container-low": "#f2f4f6",
+          "on-secondary-fixed-variant": "#3a485c",
+          "on-primary-container": "#eeefff",
+          "on-tertiary-container": "#ffede6",
+          "on-secondary-container": "#57657b",
+          "outline": "#737686",
+          "surface-dim": "#d8dadc",
+          "surface-container-high": "#e6e8ea",
+          "secondary-fixed": "#d5e3fd",
+          "secondary-container": "#d5e3fd",
+          "primary": "#004ac6",
+          "inverse-primary": "#b4c5ff",
+          "on-tertiary": "#ffffff",
+          "on-secondary-fixed": "#0d1c2f",
+          "surface-container-highest": "#e0e3e5",
+          "on-tertiary-fixed": "#360f00",
+          "on-secondary": "#ffffff",
+          "tertiary-fixed": "#ffdbcd",
+          "outline-variant": "#c3c6d7",
+          "error": "#ba1a1a",
+          "background": "#f7f9fb",
+          "on-background": "#191c1e",
+          "surface-container-lowest": "#ffffff",
+          "surface-variant": "#e0e3e5",
+          "secondary": "#515f74",
+          "error-container": "#ffdad6",
+          "tertiary-container": "#bc4800",
+          "on-error": "#ffffff",
+          "on-primary": "#ffffff",
+          "inverse-surface": "#2d3133",
+          "primary-fixed": "#dbe1ff"
+        },
+        borderRadius: {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        fontFamily: {
+          "headline": ["Inter"],
+          "body": ["Inter"],
+          "label": ["Inter"]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+
+  <!-- LEFT PANEL: Brand -->
+  <div class="hidden lg:flex flex-col overflow-hidden relative" style="width:45%; background-color:#0d1117; padding:56px 48px;">
+    <!-- Dot texture -->
+    <div class="absolute inset-0 pointer-events-none" style="opacity:0.07; background-image:radial-gradient(circle at 2px 2px, #ffffff 1px, transparent 0); background-size:36px 36px;"></div>
+    <!-- Top accent line -->
+    <div class="absolute top-0 left-0 right-0" style="height:3px; background:linear-gradient(90deg, #004ac6, #2563eb, transparent);"></div>
+
+    <!-- Logo -->
+    <div class="relative z-10">
+      <span class="text-white font-black text-2xl tracking-tight">CBH</span>
+    </div>
+
+    <!-- Center content -->
+    <div class="flex-1 flex flex-col justify-center relative z-10">
+      <p style="font-size:11px; font-weight:800; color:#004ac6; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:16px;">
+        Plataforma Industrial
+      </p>
+      <h1 style="font-size:34px; font-weight:900; color:#ffffff; line-height:1.15; letter-spacing:-0.03em; margin-bottom:16px;">
+        Construction<br/>Business Hub
+      </h1>
+      <p style="font-size:15px; color:#8b949e; line-height:1.6; max-width:340px; margin-bottom:48px;">
+        Gestão inteligente para a indústria de pré-moldados. Produção, finanças e obras em um único lugar.
+      </p>
+
+      <!-- Feature highlights -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <div class="flex items-start gap-3.5 rounded-[10px]" style="padding:16px 20px; background-color:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+          <div class="flex-shrink-0 flex items-center justify-center rounded-lg p-2" style="color:#004ac6; background-color:rgba(0,74,198,0.15);">
+            <span class="material-symbols-outlined text-[18px]">factory</span>
+          </div>
+          <div>
+            <p style="font-size:13px; font-weight:700; color:#e6edf3; margin-bottom:2px;">Controle de Fabricação</p>
+            <p style="font-size:12px; color:#8b949e; line-height:1.5;">Rastreio em tempo real de painéis, pilares e sapatas.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3.5 rounded-[10px]" style="padding:16px 20px; background-color:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+          <div class="flex-shrink-0 flex items-center justify-center rounded-lg p-2" style="color:#004ac6; background-color:rgba(0,74,198,0.15);">
+            <span class="material-symbols-outlined text-[18px]">bar_chart</span>
+          </div>
+          <div>
+            <p style="font-size:13px; font-weight:700; color:#e6edf3; margin-bottom:2px;">Gestão Financeira</p>
+            <p style="font-size:12px; color:#8b949e; line-height:1.5;">Fluxo de caixa, contas a pagar e visão executiva.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3.5 rounded-[10px]" style="padding:16px 20px; background-color:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+          <div class="flex-shrink-0 flex items-center justify-center rounded-lg p-2" style="color:#004ac6; background-color:rgba(0,74,198,0.15);">
+            <span class="material-symbols-outlined text-[18px]">build</span>
+          </div>
+          <div>
+            <p style="font-size:13px; font-weight:700; color:#e6edf3; margin-bottom:2px;">Rastreio de Ferramentas</p>
+            <p style="font-size:12px; color:#8b949e; line-height:1.5;">Controle de estoque de materiais e equipamentos.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom footer -->
+    <p class="relative z-10" style="font-size:11px; color:#30363d; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+      CBH V2.3 &copy; 2026
+    </p>
+  </div>
+
+  <!-- RIGHT PANEL: Form -->
+  <div class="bg-surface flex-1 flex flex-col items-center justify-center px-6 py-10">
+
+    <!-- Mobile logo -->
+    <div class="lg:hidden mb-8 text-center">
+      <span class="text-on-surface font-black text-2xl tracking-tight">CBH</span>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-surface-container-lowest w-full rounded-[12px] p-10" style="max-width:440px; border:1px solid #e2e4e9;">
+
+      <div class="mb-8">
+        <h2 class="text-on-surface font-black mb-1.5" style="font-size:22px; letter-spacing:-0.02em;">Bem-Vindo ao sistema</h2>
+        <p class="text-on-surface-variant" style="font-size:14px; line-height:1.5;">Insira suas credenciais para acessar a plataforma.</p>
+      </div>
+
+      <form class="flex flex-col gap-5">
+
+        <!-- Usuário -->
+        <div>
+          <label class="block text-outline mb-1.5" for="username" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;">Usuário</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-outline" style="font-size:15px;">person</span>
+            </div>
+            <input
+              id="username" name="username" type="text"
+              placeholder="ex: engenheiro_chefe"
+              class="block w-full bg-surface-container-low text-on-surface rounded-lg transition-all"
+              style="height:44px; padding-left:40px; padding-right:16px; border:1px solid #e2e4e9; font-size:14px; outline:none;"
+              onfocus="this.style.borderColor='#004ac6'; this.style.boxShadow='0 0 0 3px rgba(0,74,198,0.1)';"
+              onblur="this.style.borderColor='#e2e4e9'; this.style.boxShadow='none';"
+            />
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-outline" for="password" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;">Senha</label>
+            <a href="#" class="text-primary" style="font-size:12px; font-weight:600;">Esqueceu a senha?</a>
+          </div>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-outline" style="font-size:15px;">lock</span>
+            </div>
+            <input
+              id="password" name="password" type="password"
+              placeholder="••••••••"
+              class="block w-full bg-surface-container-low text-on-surface rounded-lg transition-all"
+              style="height:44px; padding-left:40px; padding-right:40px; border:1px solid #e2e4e9; font-size:14px; outline:none;"
+              onfocus="this.style.borderColor='#004ac6'; this.style.boxShadow='0 0 0 3px rgba(0,74,198,0.1)';"
+              onblur="this.style.borderColor='#e2e4e9'; this.style.boxShadow='none';"
+            />
+            <button
+              type="button"
+              onclick="const i=document.getElementById('password'); const ic=document.getElementById('eye-icon'); i.type=i.type==='password'?'text':'password'; ic.textContent=i.type==='password'?'visibility':'visibility_off';"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-on-surface transition-colors"
+              style="background:none; border:none; cursor:pointer;"
+            >
+              <span id="eye-icon" class="material-symbols-outlined" style="font-size:15px;">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lembrar -->
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded cursor-pointer flex-shrink-0" style="accent-color:#004ac6;" />
+          <span class="text-on-surface-variant" style="font-size:13px;">Lembrar deste dispositivo</span>
+        </label>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="flex items-center justify-center gap-2 w-full text-white font-bold rounded-lg transition-all mt-1"
+          style="height:44px; background-color:#004ac6; border:none; cursor:pointer; font-size:14px;"
+          onmouseover="this.style.backgroundColor='#003ea8';"
+          onmouseout="this.style.backgroundColor='#004ac6';"
+        >
+          Entrar na plataforma
+          <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+        </button>
+
+      </form>
+
+      <!-- Footer -->
+      <div class="mt-6 pt-5 text-center" style="border-top:1px solid #e2e4e9;">
+        <p class="text-outline" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;">
+          CBH V2.3 &copy; 2026 — Gestão de Precisão Industrial
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

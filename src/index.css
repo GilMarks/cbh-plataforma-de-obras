@@ -1,0 +1,249 @@
+@import "tailwindcss";
+
+@theme {
+  /* Font */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Primary — deep blueprint blue */
+  --color-primary: #004ac6;
+  --color-primary-dark: #003ea8;
+  --color-primary-light: #dbe1ff;
+  --color-primary-bg: #eff6ff;
+  --color-primary-container: #2563eb;
+  --color-primary-fixed: #dbe1ff;
+  --color-primary-fixed-dim: #b4c5ff;
+
+  /* Secondary */
+  --color-secondary: #515f74;
+  --color-secondary-container: #d5e3fd;
+  --color-secondary-fixed: #d5e3fd;
+
+  /* Surface — flat planes, no elevation */
+  --color-surface: #f7f9fb;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-bright: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+
+  /* Text */
+  --color-text-primary: #191c1e;
+  --color-text-secondary: #434655;
+  --color-text-muted: #737686;
+
+  /* Border — solid 1px strategy, no ghost/rgba */
+  --color-border: #e2e4e9;
+  --color-border-light: #d1d5db;
+
+  /* Outline */
+  --color-outline: #737686;
+  --color-outline-variant: #c3c6d7;
+
+  /* On Surface */
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #434655;
+  --color-on-primary: #ffffff;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-success-bright: #22c55e;
+  --color-success-bg: #dcfce7;
+  --color-success-text: #166534;
+
+  --color-warning: #d97706;
+  --color-warning-bright: #f59e0b;
+  --color-warning-bg: #fef3c7;
+  --color-warning-text: #92400e;
+
+  --color-danger: #dc2626;
+  --color-danger-bright: #ef4444;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #991b1b;
+
+  --color-info: #0ea5e9;
+  --color-info-bg: #e0e7ff;
+  --color-info-text: #3730a3;
+
+  --color-partial: #9a3412;
+  --color-partial-bg: #ffedd5;
+
+  --color-tertiary: #943700;
+  --color-tertiary-container: #bc4800;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+
+  /* Chart colors — tokenized */
+  --color-chart-blue: #004ac6;
+  --color-chart-slate: #515f74;
+  --color-chart-green: #16a34a;
+  --color-chart-red: #ef4444;
+  --color-chart-amber: #f59e0b;
+
+  /* Table */
+  --color-table-hover: #f8fafc;
+
+  /* Border Radius — sharp, technical */
+  --radius-sm: 6px;
+  --radius-input: 10px;
+  --radius-card: 12px;
+  --radius-modal: 12px;
+  --radius-pill: 999px;
+
+  /* Z-index — only for modals (layout uses flexbox, not stacking) */
+  --z-modal: 100;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Blueprint typography: tabular numbers for all data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Layout grids — responsive overrides ── */
+.grid-kpi {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+@media (max-width: 1280px) {
+  .grid-kpi { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .grid-kpi { grid-template-columns: 1fr; }
+}
+
+.grid-kpi-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+@media (max-width: 1024px) {
+  .grid-kpi-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .grid-kpi-3 { grid-template-columns: 1fr; }
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+@media (max-width: 1280px) {
+  .grid-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .grid-cards { grid-template-columns: 1fr; }
+}
+
+.grid-charts {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 1024px) {
+  .grid-charts { grid-template-columns: 1fr; }
+}
+
+/* Scrollbar — minimal */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Sidebar collapse transition */
+.sidebar-transition {
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+/* Modal card — borders-only, no shadow */
+.modal-card {
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+/* Global input/select focus — applies where Tailwind focus classes are absent */
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.08);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* Login — input field */
+.input-field {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background-color: var(--color-surface-container-low);
+  color: var(--color-text-primary);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input-field::placeholder { color: var(--color-text-muted); }
+.input-field:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.1);
+}
+
+/* Login — submit button */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+.btn-primary:hover:not(:disabled) { background-color: var(--color-primary-dark); }
+.btn-primary:disabled {
+  background-color: var(--color-primary-dark);
+  opacity: 0.75;
+  cursor: not-allowed;
+}

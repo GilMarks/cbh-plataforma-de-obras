@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .tonal-shift { background-color: #f2f4f6; }
+        .glass-panel { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(24px); }
+        .ghost-border { border: 1px solid rgba(195, 198, 215, 0.15); }
+        .industrial-gradient { background: linear-gradient(135deg, #004ac6 0%, #2563eb 100%); }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c3c6d7",
+                        "tertiary": "#943700",
+                        "secondary": "#515f74",
+                        "primary-container": "#2563eb",
+                        "primary": "#004ac6",
+                        "secondary-fixed": "#d5e3fd",
+                        "surface-variant": "#e0e3e5",
+                        "on-surface": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "on-background": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737686",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container": "#eceef0",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-container-high": "#e6e8ea",
+                        "surface": "#f7f9fb",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "background": "#f7f9fb",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-container": "#57657b",
+                        "on-tertiary-container": "#ffede6",
+                        "tertiary-container": "#bc4800",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#434655",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-tint": "#0053db",
+                        "surface-bright": "#f7f9fb",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "on-primary-fixed": "#00174b",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "secondary-container": "#d5e3fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased overflow-x-hidden">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full w-[300px] flex flex-col p-4 bg-slate-50 dark:bg-slate-900 z-50 font-['Inter'] antialiased tracking-tight">
+<div class="flex items-center gap-3 px-4 py-6 mb-8">
+<div class="w-10 h-10 industrial-gradient rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">architecture</span>
+</div>
+<div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white leading-none">CBH</h1>
+<p class="text-xs text-slate-500 font-medium tracking-widest uppercase mt-1">Construction Hub</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">factory</span>
+<span class="font-medium text-sm">Factory</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">construction</span>
+<span class="font-medium text-sm">Construction</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-medium text-sm">Procurement</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-semibold shadow-sm rounded-lg scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-medium text-sm">Finance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium text-sm">HR</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-medium text-sm">Users</span>
+</a>
+</nav>
+<div class="mt-auto p-4 bg-slate-200/30 rounded-xl">
+<div class="flex items-center gap-3">
+<img alt="User profile photo" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="portrait of a professional engineer in his 40s wearing a clean white shirt and glasses, studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRTU2PUkWhjYzB3wSysEbdKmQDmUousaPdqYG8e7s3_NPugg7Ya_nWOfRcsl0_Ff1okuS6JCvzLiBF74u7WuJMrzhNp1IlD3yt3OAztgHYpomvcTmieMwmpuAblu8feqfBv-L-jPkMwSbyfn2wYlSA5vVbEv2FqpahN3bfQmRMbzbx-M22jI8UE3ccv2l476Sigf1J5OvpmJSnZwerPKVtkbGn2gL5xt2Z5eO5QruuceoAjpNxlQMZUbs_6OALb8-OpT7wpE4Eu4o"/>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-900">Ricardo Almeida</span>
+<span class="text-[10px] text-slate-500 uppercase tracking-tighter">Finance Director</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 left-[300px] z-40 flex justify-between items-center px-8 h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/15 shadow-sm shadow-blue-900/5">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-xs focus:ring-2 focus:ring-primary/20" placeholder="Search across construction projects..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-slate-500">
+<button class="hover:text-blue-600 transition-all"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:text-blue-600 transition-all"><span class="material-symbols-outlined">settings</span></button>
+<button class="hover:text-blue-600 transition-all"><span class="material-symbols-outlined">help</span></button>
+</div>
+<button class="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-lg flex items-center gap-2 industrial-gradient shadow-md shadow-blue-600/20 active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                New Payment
+            </button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[300px] pt-24 px-8 pb-12 min-h-screen">
+<!-- Header Section -->
+<div class="mb-10">
+<h2 class="text-3xl font-extrabold text-on-surface tracking-tight mb-1">Contas a Pagar</h2>
+<p class="text-on-surface-variant text-sm font-medium">Gestão de despesas pendentes e efetivação de pagamentos</p>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-6 rounded-xl ghost-border flex items-center gap-5">
+<div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-2xl">schedule</span>
+</div>
+<div>
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">A Vencer (Próx. 7 dias)</p>
+<p class="text-2xl font-bold text-blue-600">R$ 142.850,00</p>
+</div>
+</div>
+<div class="bg-[#fef2f2] p-6 rounded-xl ghost-border flex items-center gap-5 border border-red-100">
+<div class="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center text-red-600">
+<span class="material-symbols-outlined text-2xl">error</span>
+</div>
+<div>
+<p class="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">Em Atraso (Vencido)</p>
+<p class="text-2xl font-bold text-[#dc2626]">R$ 28.410,55</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl ghost-border flex items-center gap-5">
+<div class="w-12 h-12 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+<div>
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Pendente</p>
+<p class="text-2xl font-bold text-on-surface">R$ 645.200,00</p>
+</div>
+</div>
+</div>
+<!-- Filter Toolbar -->
+<div class="bg-surface-container-lowest p-4 rounded-xl ghost-border mb-8 flex flex-wrap items-center gap-4 shadow-sm shadow-slate-200/50">
+<div class="flex-1 min-w-[240px] relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-surface text-sm border-none focus:ring-2 focus:ring-primary/20 rounded-lg" placeholder="Buscar por Fornecedor..." type="text"/>
+</div>
+<div class="w-48 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">calendar_month</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-surface text-sm border-none focus:ring-2 focus:ring-primary/20 rounded-lg" placeholder="Vencimento" type="text"/>
+</div>
+<div class="w-48">
+<select class="w-full px-4 py-2.5 bg-surface text-sm border-none focus:ring-2 focus:ring-primary/20 rounded-lg text-on-surface-variant font-medium">
+<option value="">Status: Todos</option>
+<option value="pendente">Pendentes</option>
+<option value="vencido">Vencidos</option>
+</select>
+</div>
+<button class="px-8 py-2.5 bg-[#2563eb] text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                Filtrar
+            </button>
+</div>
+<!-- Data Table Section -->
+<div class="bg-surface-container-lowest rounded-xl ghost-border overflow-hidden shadow-sm shadow-slate-200/50">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-outline-variant/15">
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">ID</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Fornecedor / Descrição</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Vencimento</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Valor</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-5 text-sm font-mono text-slate-500">FIN-001</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Votorantim Cimentos S.A.</span>
+<span class="text-[11px] text-on-surface-variant">Compra de insumos (Cimento CP II) - NF 8842</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">22/10/2023</td>
+<td class="px-6 py-5 text-sm font-bold text-on-surface">R$ 12.450,00</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight bg-amber-100 text-amber-700">Pendente</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-bold rounded hover:bg-blue-100 transition-colors">Efetivar Pagamento</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-5 text-sm font-mono text-slate-500">FIN-002</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Gerdau Aços Longos</span>
+<span class="text-[11px] text-on-surface-variant">Armaduras de aço para painéis estruturais - NF 9015</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-red-600">15/10/2023</td>
+<td class="px-6 py-5 text-sm font-bold text-on-surface">R$ 8.920,40</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight bg-red-100 text-red-700">Atrasado</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-bold rounded hover:bg-blue-100 transition-colors">Efetivar Pagamento</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-6 py-5 text-sm font-mono text-slate-500">FIN-003</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">Energisa Distribuidora</span>
+<span class="text-[11px] text-on-surface-variant">Consumo de Energia Elétrica - Planta Industrial 01</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">25/10/2023</td>
+<td class="px-6 py-5 text-sm font-bold text-on-surface">R$ 4.580,12</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight bg-amber-100 text-amber-700">Pendente</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="px-4 py-1.5 bg-blue-50 text-blue-600 text-xs font-bold rounded hover:bg-blue-100 transition-colors">Efetivar Pagamento</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Payment Dialog Preview (Mockup Overlay) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+<div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden ring-1 ring-slate-200">
+<div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+<div>
+<h3 class="text-xl font-bold text-on-surface tracking-tight">Efetivar Pagamento</h3>
+<p class="text-xs text-on-surface-variant font-medium">Confirme os detalhes da transação financeira</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="p-8 space-y-6">
+<!-- Read-only Vendor Info -->
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fornecedor</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Valor Devido</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-sm font-bold text-on-surface">Votorantim Cimentos S.A.</span>
+<span class="text-lg font-extrabold text-primary">R$ 12.450,00</span>
+</div>
+</div>
+<!-- Form Fields -->
+<div class="grid grid-cols-2 gap-4">
+<div class="col-span-2">
+<label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-2">Conta de Origem</label>
+<select class="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 text-sm focus:ring-2 focus:ring-primary/20 rounded-lg">
+<option>Itaú Unibanco - Ag 0412 CC 99042-1</option>
+<option>Bradesco - Ag 2145 CC 10245-8</option>
+<option>Santander - Ag 8821 CC 44521-0</option>
+</select>
+</div>
+<div>
+<label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-2">Data Pagto</label>
+<input class="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 text-sm focus:ring-2 focus:ring-primary/20 rounded-lg" type="date" value="2023-10-22"/>
+</div>
+<div>
+<label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-2">Valor Pago</label>
+<input class="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 text-sm focus:ring-2 focus:ring-primary/20 rounded-lg font-semibold" type="text" value="12.450,00"/>
+</div>
+</div>
+<!-- Drag & Drop -->
+<div>
+<label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-2">Anexar Comprovante</label>
+<div class="border-2 border-dashed border-outline-variant/30 rounded-xl p-8 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100/50 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-3xl text-slate-300 group-hover:text-primary transition-colors mb-2">cloud_upload</span>
+<p class="text-xs font-semibold text-slate-500">Arraste ou clique para enviar</p>
+<p class="text-[10px] text-slate-400 mt-1">PDF, JPG ou PNG (Máx 5MB)</p>
+</div>
+</div>
+</div>
+<div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+<button class="px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-colors rounded-lg">Cancelar</button>
+<button class="px-8 py-2.5 bg-[#2563eb] text-white text-sm font-bold rounded-lg industrial-gradient shadow-lg shadow-blue-600/20 active:opacity-80 transition-opacity">
+                        Confirmar Pagamento
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
