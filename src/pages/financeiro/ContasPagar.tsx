@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, DollarSign, Clock, AlertTriangle, X, Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, update } from '../../lib/storage';
-import { STORAGE_KEYS, type LancamentoFinanceiro, type Banco } from '../../lib/types';
+import { lancamentos as lancamentosApi, bancos as bancosApi } from '../../lib/api';
+import type { LancamentoFinanceiro, Banco } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -20,10 +20,17 @@ function getVencimentoStatus(vencimento: string, status: string): { label: strin
 }
 
 export default function ContasPagar() {
-  const [lancamentos, setLancamentos] = useState(() =>
-    getAll<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS).filter(l => l.status !== 'Pago' && l.tipo === 'Despesa')
-  );
-  const bancos = useMemo(() => getAll<Banco>(STORAGE_KEYS.BANCOS), []);
+  const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
+  const [bancos, setBancos] = useState<Banco[]>([]);
+
+  const refreshLancamentos = () => {
+    lancamentosApi.listar({ tipo: 'Despesa' }).then(data => setLancamentos(data.filter(l => l.status !== 'Pago'))).catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshLancamentos();
+    bancosApi.listar().then(setBancos).catch(() => {});
+  }, []);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -75,21 +82,23 @@ export default function ContasPagar() {
 
     setIsProcessing(true);
 
-    // Simulate processing delay
-    setTimeout(() => {
-      update<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS, selectedLancamento.id, { status: 'Pago' });
+    lancamentosApi.pagar(selectedLancamento.id, {
+      bancoId: Number(contaOrigem),
+      dataPagamento,
+      valorPago: Number(valorPago),
+    }).then(() => {
       setSuccessId(selectedLancamento.id);
       setIsProcessing(false);
       setModalOpen(false);
       setSelectedLancamento(null);
 
-      // Show success flash on the row, then remove from list
       setTimeout(() => {
-        setLancamentos(prev => prev.filter(l => l.id !== successId));
-        setLancamentos(getAll<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS).filter(l => l.status !== 'Pago' && l.tipo === 'Despesa'));
+        refreshLancamentos();
         setSuccessId(null);
       }, 1500);
-    }, 1200);
+    }).catch(() => {
+      setIsProcessing(false);
+    });
   };
 
   const hasActiveFilters = search || filterStatus;

@@ -1,20 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, UserPlus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import KPICard from '../../components/shared/KPICard';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, remove } from '../../lib/storage';
-import { STORAGE_KEYS, type FuncionarioRH } from '../../lib/types';
+import { funcionariosRH } from '../../lib/api';
+import type { FuncionarioRH } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function ListaFuncionarios() {
   const navigate = useNavigate();
-  const [funcionarios, setFuncionarios] = useState(() => getAll<FuncionarioRH>(STORAGE_KEYS.FUNCIONARIOS_RH));
+  const [funcionarios, setFuncionarios] = useState<FuncionarioRH[]>([]);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const refresh = () => setFuncionarios(getAll<FuncionarioRH>(STORAGE_KEYS.FUNCIONARIOS_RH));
+  const refresh = () => { funcionariosRH.listar().then(setFuncionarios).catch(() => {}); };
+
+  useEffect(() => { refresh(); }, []);
 
   const filtered = useMemo(() => {
     if (!search) return funcionarios;
@@ -32,7 +34,7 @@ export default function ListaFuncionarios() {
   const endIdx = Math.min(currentPage * ITEMS_PER_PAGE, filtered.length);
 
   const handleDelete = (id: number) => {
-    if (confirm('Excluir este funcionario?')) { remove<FuncionarioRH>(STORAGE_KEYS.FUNCIONARIOS_RH, id); refresh(); }
+    if (confirm('Excluir este funcionario?')) { funcionariosRH.remover(id).then(() => refresh()).catch(() => {}); }
   };
 
   return (

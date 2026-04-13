@@ -1,20 +1,25 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create } from '../../lib/storage';
+import { solicitacoesCompra, obras as obrasApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
-import { STORAGE_KEYS, type SolicitacaoCompra, type Obra } from '../../lib/types';
+import type { SolicitacaoCompra, Obra } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function SolicitacaoOrcamentoObra() {
-  const [solicitacoes, setSolicitacoes] = useState(() =>
-    getAll<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA).filter(s => s.setor === 'Obra')
-  );
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
+  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoCompra[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
   const user = getCurrentUser();
+
+  const refresh = () => { solicitacoesCompra.listar().then(data => setSolicitacoes(data.filter(s => s.setor === 'Obra'))).catch(() => {}); };
+
+  useEffect(() => {
+    refresh();
+    obrasApi.listar().then(setObras).catch(() => {});
+  }, []);
 
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,8 +30,6 @@ export default function SolicitacaoOrcamentoObra() {
   const [formUnidade, setFormUnidade] = useState('un');
   const [formPrioridade, setFormPrioridade] = useState<'Baixa' | 'Media' | 'Alta'>('Media');
   const [formObs, setFormObs] = useState('');
-
-  const refresh = () => setSolicitacoes(getAll<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA).filter(s => s.setor === 'Obra'));
 
   const filtered = useMemo(() => {
     if (!search) return solicitacoes;
@@ -40,15 +43,16 @@ export default function SolicitacaoOrcamentoObra() {
     if (!formObraId || !formItem.trim() || !formQtd) return;
     const obra = obras.find(o => o.id === Number(formObraId));
     if (!obra) return;
-    create<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA, {
+    solicitacoesCompra.criar({
       obraId: obra.id, obraNome: obra.nome, setor: 'Obra', item: formItem,
       quantidade: Number(formQtd), unidade: formUnidade, prioridade: formPrioridade,
       observacoes: formObs, solicitante: user?.login || '',
       data: new Date().toISOString().split('T')[0], status: 'SOLICITADO',
       fornecedor: '', valor: 0, pagamento: '', imagemOrcamento: '', statusFluxo: 'SOLICITADO',
-    } as Omit<SolicitacaoCompra, 'id'>);
-    refresh(); setModalOpen(false);
-    setFormObraId(''); setFormItem(''); setFormQtd(''); setFormObs('');
+    }).then(() => {
+      refresh(); setModalOpen(false);
+      setFormObraId(''); setFormItem(''); setFormQtd(''); setFormObs('');
+    }).catch(() => {});
   };
 
   return (

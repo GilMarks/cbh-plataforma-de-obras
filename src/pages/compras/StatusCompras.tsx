@@ -1,16 +1,20 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll } from '../../lib/storage';
-import { STORAGE_KEYS, type Processo } from '../../lib/types';
+import { processos as processosApi } from '../../lib/api';
+import type { Processo } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 const STATUS_ORDER = ['SOLICITADO', 'EM ORCAMENTO', 'AGUARDANDO_AUTORIZACAO', 'AUTORIZADO', 'NO_FINANCEIRO', 'PAGO', 'NEGADO'];
 
 export default function StatusCompras() {
-  const processos = useState(() => getAll<Processo>(STORAGE_KEYS.PROCESSOS))[0];
+  const [processos, setProcessos] = useState<Processo[]>([]);
+
+  useEffect(() => {
+    processosApi.listar().then(setProcessos).catch(() => {});
+  }, []);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [currentPage, setCurrentPage] = useState(1);

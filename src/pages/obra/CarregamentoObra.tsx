@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Boxes, ChevronDown, Plus, Truck, X } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import EmptyState from '../../components/shared/EmptyState';
 import SimuladorCarregamento from '../../components/shared/SimuladorCarregamento';
-import { create, getAll, getCurrentUser } from '../../lib/storage';
+import { carregamentos as carregamentosApi, obras as obrasApi, solicitacoes as solicitacoesApi } from '../../lib/api';
+import { getCurrentUser } from '../../lib/storage';
 import {
   agruparPlanoCarregamento,
   carregamentoReservaEstoque,
@@ -15,13 +16,7 @@ import {
   parseDimensaoPainel,
 } from '../../lib/carregamento';
 import type { PainelEstoqueCarregamento } from '../../lib/carregamento';
-import {
-  STORAGE_KEYS,
-  type Carregamento,
-  type Obra,
-  type PainelCarregamento,
-  type Solicitacao,
-} from '../../lib/types';
+import type { Carregamento, Obra, PainelCarregamento, Solicitacao } from '../../lib/types';
 
 const PREVIEW_PIXELS_PER_METER = 24;
 const LABEL_CLASS = 'text-xs font-semibold uppercase tracking-wider text-slate-500';
@@ -84,55 +79,6 @@ function getCapacidadeResumo(carregamento: Carregamento) {
   };
 }
 
-function OverviewField({
-  label,
-  value,
-  mono = false,
-  emphasis = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  emphasis?: boolean;
-}) {
-  return (
-    <div className="min-w-0">
-      <div className={LABEL_CLASS}>{label}</div>
-      <div
-        className={`mt-1 truncate text-sm text-slate-700 ${mono ? NUMERIC_CLASS : ''} ${
-          emphasis ? 'font-medium text-slate-900' : ''
-        }`}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function CapacityBar({ percent }: { percent: number }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-blue-600" style={{ width: `${percent}%` }} />
-      </div>
-      <span className="text-xs text-slate-500">
-        Capacidade: <span className={`text-slate-700 ${NUMERIC_CLASS}`}>{percent}%</span>
-      </span>
-    </div>
-  );
-}
-
-function StatusPill({ carregamento }: { carregamento: Carregamento }) {
-  const status = getDisplayStatus(carregamento);
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${status.className}`}
-    >
-      {status.label}
-    </span>
-  );
-}
 
 function CompactTruckPreview({ carregamento }: { carregamento: Carregamento }) {
   const resumo = getCapacidadeResumo(carregamento);
@@ -161,23 +107,14 @@ function CompactTruckPreview({ carregamento }: { carregamento: Carregamento }) {
   );
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className={LABEL_CLASS}>Planta baixa do carregamento</div>
-          <p className="mt-1 text-sm text-slate-600">
-            {resumo.modo === 'Munck'
-              ? 'Visual compacto do munck com duas pistas laterais.'
-              : 'Visual compacto da prancha com faixas sequenciais.'}
-          </p>
-        </div>
-        <div className="text-right text-xs text-slate-500">
-          <div className={LABEL_CLASS}>Total ocupado</div>
-          <div className={`mt-1 text-sm text-slate-700 ${NUMERIC_CLASS}`}>{formatMeters(resumo.totalMeters)}</div>
-        </div>
+    <div>
+      <div className="mb-2 flex items-center justify-end">
+        <span className={`text-xs text-slate-500 ${NUMERIC_CLASS}`}>
+          Total: <strong className="text-slate-700">{formatMeters(resumo.totalMeters)}</strong>
+        </span>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-slate-300 bg-slate-50 p-3">
+      <div className="max-h-40 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
         {resumo.modo === 'Munck' ? (
           <div
             className="grid items-start gap-3 overflow-x-auto"
@@ -232,90 +169,164 @@ function CompactTruckPreview({ carregamento }: { carregamento: Carregamento }) {
   );
 }
 
+function CapacityColor(percent: number) {
+  if (percent >= 90) return 'bg-red-500';
+  if (percent >= 70) return 'bg-amber-500';
+  return 'bg-blue-500';
+}
+
 function CarregamentoAccordionRow({ carregamento }: { carregamento: Carregamento }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [seqExpanded, setSeqExpanded] = useState(false);
   const resumo = getCapacidadeResumo(carregamento);
   const resumoSequencia = criarResumoSequenciaCarregamento(carregamento.paineis);
+  const status = getDisplayStatus(carregamento);
+  const headerId = `carregamento-header-${carregamento.id}`;
+  const pct = resumo.capacidadePercentual;
 
   return (
-    <div className="mb-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div
+      className={`overflow-hidden rounded-xl border bg-white transition-all duration-150 ${
+        isExpanded ? 'border-slate-300 shadow-sm' : 'border-slate-200 hover:bg-slate-50/50 hover:border-slate-300 hover:shadow-sm'
+      }`}
+      role="region"
+      aria-labelledby={headerId}
+    >
+      {/* ── Header clicável ── */}
       <button
         type="button"
-        onClick={() => setIsExpanded(value => !value)}
-        className="w-full cursor-pointer px-4 py-4 text-left transition-colors hover:bg-slate-50"
+        id={headerId}
+        onClick={() => setIsExpanded(v => !v)}
+        aria-expanded={isExpanded}
+        aria-label={`Carregamento #${carregamento.id} — ${carregamento.obraNome}, ${status.label}. ${isExpanded ? 'Recolher' : 'Expandir'} detalhes.`}
+        className="w-full px-5 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
       >
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="grid flex-1 grid-cols-2 gap-4 xl:grid-cols-4">
-            <OverviewField label="Carregamento" value={`#${carregamento.id}`} mono emphasis />
-            <OverviewField label="Data" value={carregamento.dataSolicitacao || '-'} mono />
-            <OverviewField label="Veiculo" value={carregamento.veiculo} />
-            <OverviewField label="Destino" value={carregamento.obraNome} emphasis />
+        <div className="flex items-center gap-3">
+          {/* ID */}
+          <span className="shrink-0 font-mono text-xs font-bold text-slate-400">#{carregamento.id}</span>
+
+          {/* Nome + status */}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="truncate font-semibold text-slate-900">{carregamento.obraNome}</span>
+              <span
+                className={`inline-flex shrink-0 items-center rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${status.className}`}
+                aria-label={`Status: ${status.label}`}
+              >
+                {status.label}
+              </span>
+            </div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
+              <span>{carregamento.veiculo}</span>
+              <span aria-hidden="true">·</span>
+              <time dateTime={carregamento.dataSolicitacao || undefined}>{carregamento.dataSolicitacao || '-'}</time>
+              <span aria-hidden="true">·</span>
+              <span>{carregamento.paineis.length} painéis</span>
+            </div>
           </div>
 
-          <div className="xl:min-w-[220px]">
-            <CapacityBar percent={resumo.capacidadePercentual} />
-          </div>
-
-          <div className="flex items-center justify-between gap-3 xl:min-w-[180px] xl:justify-end">
-            <StatusPill carregamento={carregamento} />
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500">
-              <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+          {/* Capacidade — cor contextual */}
+          <div
+            className="hidden shrink-0 items-center gap-2 sm:flex"
+            aria-label={`Capacidade: ${pct}%`}
+          >
+            <div
+              className="h-1 w-16 overflow-hidden rounded-full bg-slate-100"
+              role="progressbar"
+              aria-valuenow={pct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                className={`h-full rounded-full transition-all ${CapacityColor(pct)}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className={`font-mono text-xs ${pct >= 90 ? 'font-bold text-red-500' : pct >= 70 ? 'font-bold text-amber-500' : 'text-slate-400'}`}>
+              {pct}%
             </span>
           </div>
+
+          {/* Chevron */}
+          <ChevronDown
+            size={15}
+            aria-hidden="true"
+            className={`shrink-0 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          />
         </div>
       </button>
 
-      {isExpanded ? (
-        <div className="border-t border-slate-100 bg-slate-50 p-4">
-          <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-4">
-            <div className="rounded-md border border-slate-200 bg-white px-3 py-3">
-              <div className={LABEL_CLASS}>Paineis</div>
-              <div className={`mt-1 text-sm text-slate-900 ${NUMERIC_CLASS}`}>{carregamento.paineis.length}</div>
-            </div>
-            <div className="rounded-md border border-slate-200 bg-white px-3 py-3">
-              <div className={LABEL_CLASS}>Camadas</div>
-              <div className={`mt-1 text-sm text-slate-900 ${NUMERIC_CLASS}`}>{resumo.profundidade}</div>
-            </div>
-            <div className="rounded-md border border-slate-200 bg-white px-3 py-3">
-              <div className={LABEL_CLASS}>Distribuicao</div>
-              <div className={`mt-1 text-sm text-slate-900 ${NUMERIC_CLASS}`}>
-                {resumo.modo === 'Munck'
-                  ? `E ${resumo.totalEsquerdo} | D ${resumo.totalDireito}`
-                  : `${resumo.totalPrancha} na prancha`}
+      {/* ── Corpo expansível ── */}
+      {isExpanded && (
+        <div className="border-t border-slate-100">
+          {/* KPIs inline */}
+          <dl className="flex flex-wrap items-center divide-x divide-slate-100 px-5 py-3">
+            {([
+              { label: 'Painéis', value: String(carregamento.paineis.length) },
+              { label: 'Camadas', value: String(resumo.profundidade) },
+              {
+                label: 'Distribuição',
+                value: resumo.modo === 'Munck'
+                  ? `E ${resumo.totalEsquerdo} · D ${resumo.totalDireito}`
+                  : `${resumo.totalPrancha} prancha`,
+              },
+              { label: 'Solicitante', value: carregamento.solicitante || '-' },
+            ] as { label: string; value: string }[]).map(item => (
+              <div key={item.label} className="px-4 py-1 first:pl-0">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{item.label}</dt>
+                <dd className="mt-0.5 truncate font-mono text-sm font-bold text-slate-800">{item.value}</dd>
               </div>
+            ))}
+          </dl>
+
+          {/* Sequência */}
+          <div className="border-t border-slate-100 px-5 py-4">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sequência de montagem</p>
+              {resumoSequencia.length > 80 && (
+                <button
+                  type="button"
+                  onClick={() => setSeqExpanded(v => !v)}
+                  className="text-[10px] font-bold text-blue-500 hover:text-blue-700 focus-visible:outline-none"
+                >
+                  {seqExpanded ? 'Recolher' : 'Ver tudo'}
+                </button>
+              )}
             </div>
-            <div className="rounded-md border border-slate-200 bg-white px-3 py-3">
-              <div className={LABEL_CLASS}>Solicitante</div>
-              <div className="mt-1 truncate text-sm font-medium text-slate-700">{carregamento.solicitante || '-'}</div>
-            </div>
+            <p className={`text-sm leading-relaxed text-slate-600 ${seqExpanded ? '' : 'line-clamp-1'}`}>
+              {resumoSequencia}
+            </p>
           </div>
 
-          <div className="mb-4 rounded-md border border-slate-200 bg-white px-3 py-3">
-            <div className={LABEL_CLASS}>Sequencia de carregamento</div>
-            <div className="mt-1 text-sm text-slate-700">{resumoSequencia}</div>
+          {/* Planta baixa */}
+          <div className="border-t border-slate-100 px-5 py-4">
+            <div className="max-h-48 overflow-auto rounded-lg border border-slate-100 p-3">
+              <CompactTruckPreview carregamento={carregamento} />
+            </div>
           </div>
-
-          <CompactTruckPreview carregamento={carregamento} />
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
 
 export default function CarregamentoObra() {
-  const [carregamentos, setCarregamentos] = useState(() => getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS));
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
-  const solicitacoes = useMemo(
-    () => getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES).filter(item => item.statusAutorizacao === 'Autorizado'),
-    [],
-  );
+  const [carregamentos, setCarregamentos] = useState<Carregamento[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const user = getCurrentUser();
+
+  useEffect(() => {
+    carregamentosApi.listar().then(setCarregamentos).catch(() => {});
+    obrasApi.listar().then(setObras).catch(() => {});
+    solicitacoesApi.listar({ statusAutorizacao: 'Autorizado' }).then(setSolicitacoes).catch(() => {});
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [formObraId, setFormObraId] = useState('');
   const [formVeiculo, setFormVeiculo] = useState<'Munck' | 'Carreta'>('Munck');
 
-  const refresh = () => setCarregamentos(getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS));
+  const refresh = () => carregamentosApi.listar().then(setCarregamentos).catch(() => {});
 
   const closeModal = () => {
     setModalOpen(false);
@@ -400,7 +411,7 @@ export default function CarregamentoObra() {
     const obra = obras.find(item => item.id === Number(formObraId));
     if (!obra) return;
 
-    create<Carregamento>(STORAGE_KEYS.CARREGAMENTOS, {
+    carregamentosApi.criar({
       obraId: obra.id,
       obraNome: obra.nome,
       veiculo: formVeiculo,
@@ -414,9 +425,8 @@ export default function CarregamentoObra() {
       executadoPor: '',
       dataExecucao: '',
       status: 'Pendente',
-    } as Omit<Carregamento, 'id'>);
+    }).then(() => refresh()).catch(() => {});
 
-    refresh();
     closeModal();
   };
 
@@ -450,11 +460,20 @@ export default function CarregamentoObra() {
       <p className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px', marginBottom: '8px' }}>
         Obra
       </p>
-      <div className="flex items-center gap-3">
-        <Truck size={28} className="text-primary" />
-        <h1 className="font-extrabold text-text-primary" style={{ fontSize: '28px', lineHeight: 1.2 }}>
-          Carregamento
-        </h1>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Truck size={28} className="text-primary" />
+          <h1 className="font-extrabold text-text-primary" style={{ fontSize: '28px', lineHeight: 1.2 }}>
+            Carregamento
+          </h1>
+        </div>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="bg-primary text-white font-bold flex items-center gap-2 hover:opacity-90 shrink-0"
+          style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+        >
+          <Plus size={16} /> Novo Plano de Carregamento
+        </button>
       </div>
       <p className="text-text-secondary" style={{ fontSize: '14px', marginTop: '6px' }}>
         Monte o plano de carregamento por obra, obedecendo a sequencia de montagem e a ocupacao por camada.
@@ -467,17 +486,7 @@ export default function CarregamentoObra() {
         <KPICard title="Obras com Estoque" value={obrasComEstoque} icon="HardHat" color="primary" />
       </div>
 
-      <div className="flex justify-end" style={{ marginTop: '28px' }}>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="bg-primary text-white font-bold flex items-center gap-2 hover:opacity-90"
-          style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}
-        >
-          <Plus size={16} /> Novo Plano de Carregamento
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-4" style={{ marginTop: '20px' }}>
+      <div className="flex flex-col gap-3" style={{ marginTop: '28px' }}>
         {carregamentos.length === 0 ? (
           <EmptyState message="Nenhum carregamento registrado" icon="Truck" />
         ) : (
@@ -490,24 +499,29 @@ export default function CarregamentoObra() {
       {modalOpen && (
         <div
           className="fixed inset-0 flex items-center justify-center"
-          style={{
-            zIndex: 'var(--z-modal)',
-            background: 'rgba(15, 23, 42, 0.36)',
-            padding: '16px',
-          }}
+          style={{ zIndex: 'var(--z-modal)', background: 'rgba(15, 23, 42, 0.36)', padding: '16px' }}
+          aria-hidden="true"
+          onClick={e => { if (e.target === e.currentTarget) closeModal(); }}
         >
-          <div className="modal-card w-full overflow-y-auto" style={{ maxWidth: '1600px', maxHeight: '94vh', padding: '28px 32px' }}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-titulo"
+            className="modal-card w-full overflow-y-auto"
+            style={{ maxWidth: '1600px', maxHeight: '94vh', padding: '28px 32px' }}
+            onKeyDown={e => { if (e.key === 'Escape') closeModal(); }}
+          >
             <div className="flex items-start justify-between gap-4" style={{ marginBottom: '24px' }}>
               <div>
-                <h2 className="font-extrabold text-text-primary" style={{ fontSize: '24px' }}>
+                <h2 id="modal-titulo" className="font-extrabold text-text-primary" style={{ fontSize: '24px' }}>
                   Novo plano de carregamento
                 </h2>
                 <p className="text-text-muted" style={{ fontSize: '13px', marginTop: '6px', lineHeight: 1.5 }}>
                   Escolha a obra, confira o estoque fabricado e monte o plano com arrastar e soltar na mesma logica de montagem.
                 </p>
               </div>
-              <button onClick={closeModal} className="text-text-muted hover:text-text-primary">
-                <X size={20} />
+              <button onClick={closeModal} aria-label="Fechar modal" className="text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
 
@@ -519,12 +533,14 @@ export default function CarregamentoObra() {
 
                 <div className="flex flex-col gap-4">
                   <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>
+                    <label htmlFor="select-obra" className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>
                       Obra
                     </label>
                     <select
+                      id="select-obra"
                       value={formObraId}
                       onChange={event => setFormObraId(event.target.value)}
+                      aria-required="true"
                       className="w-full bg-white border border-border"
                       style={{ padding: '12px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}
                     >

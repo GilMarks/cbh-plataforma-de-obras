@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, X, Wrench, ArrowLeftRight } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
 import KPICard from '../../components/shared/KPICard';
-import { getAll, create, update } from '../../lib/storage';
-import { getCurrentUser } from '../../lib/storage';
-import { STORAGE_KEYS, type Ferramenta } from '../../lib/types';
+import { ferramentas as ferramentasApi } from '../../lib/api';
+import type { Ferramenta } from '../../lib/types';
 
 export default function RastreioFerramentas() {
-  const [ferramentas, setFerramentas] = useState(() => getAll<Ferramenta>(STORAGE_KEYS.FERRAMENTAS));
-  const user = getCurrentUser();
+  const [ferramentas, setFerramentas] = useState<Ferramenta[]>([]);
+
+  useEffect(() => {
+    ferramentasApi.listar().then(setFerramentas).catch(() => {});
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [formNome, setFormNome] = useState('');
@@ -19,20 +21,19 @@ export default function RastreioFerramentas() {
   const [selectedFerr, setSelectedFerr] = useState<Ferramenta | null>(null);
   const [empResponsavel, setEmpResponsavel] = useState('');
 
-  const refresh = () => setFerramentas(getAll<Ferramenta>(STORAGE_KEYS.FERRAMENTAS));
+  const refresh = () => ferramentasApi.listar().then(setFerramentas).catch(() => {});
 
-  const today = new Date().toISOString().split('T')[0];
   const disponiveis = ferramentas.filter(f => f.status === 'Disponivel').length;
   const emprestadas = ferramentas.filter(f => f.status === 'Emprestada').length;
 
   const handleCriar = () => {
     if (!formNome.trim()) return;
-    create<Ferramenta>(STORAGE_KEYS.FERRAMENTAS, {
+    ferramentasApi.criar({
       nome: formNome, codigo: formCodigo, status: 'Disponivel',
       responsavelAtual: '', dataEmprestimo: '', dataDevolvida: '',
       historicoUso: [],
-    } as Omit<Ferramenta, 'id'>);
-    refresh(); setModalOpen(false); setFormNome(''); setFormCodigo('');
+    }).then(() => refresh()).catch(() => {});
+    setModalOpen(false); setFormNome(''); setFormCodigo('');
   };
 
   const openEmprestimo = (f: Ferramenta) => {
@@ -41,24 +42,13 @@ export default function RastreioFerramentas() {
 
   const handleEmprestar = () => {
     if (!selectedFerr || !empResponsavel.trim()) return;
-    update<Ferramenta>(STORAGE_KEYS.FERRAMENTAS, selectedFerr.id, {
-      status: 'Emprestada',
-      responsavelAtual: empResponsavel,
-      dataEmprestimo: today,
-      dataDevolvida: '',
-    });
-    refresh(); setEmpModalOpen(false);
+    ferramentasApi.emprestar(selectedFerr.id, empResponsavel)
+      .then(() => refresh()).catch(() => {});
+    setEmpModalOpen(false);
   };
 
   const handleDevolver = (f: Ferramenta) => {
-    const hist = [...f.historicoUso, { responsavel: f.responsavelAtual, dataRetirada: f.dataEmprestimo, dataDevolucao: today }];
-    update<Ferramenta>(STORAGE_KEYS.FERRAMENTAS, f.id, {
-      status: 'Disponivel',
-      responsavelAtual: '',
-      dataDevolvida: today,
-      historicoUso: hist,
-    });
-    refresh();
+    ferramentasApi.devolver(f.id).then(() => refresh()).catch(() => {});
   };
 
   return (

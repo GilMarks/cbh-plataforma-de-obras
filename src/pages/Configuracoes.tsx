@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Shield, Settings as SettingsIcon, Sun, Moon, Monitor } from 'lucide-react';
-import { getCurrentUser, setCurrentUser, update } from '../lib/storage';
-import { STORAGE_KEYS, type Usuario } from '../lib/types';
+import { getCurrentUser, setCurrentUser } from '../lib/storage';
+import { usuarios as usuariosApi } from '../lib/api';
 
 export default function Configuracoes() {
   const user = getCurrentUser()!;
@@ -17,10 +17,11 @@ export default function Configuracoes() {
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    update<Usuario>(STORAGE_KEYS.USUARIOS, user.id, { login: nome });
-    setCurrentUser({ ...user, login: nome });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    usuariosApi.atualizar(user.id, { login: nome }).then(() => {
+      setCurrentUser({ ...user, login: nome });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    }).catch(() => {});
   };
 
   return (

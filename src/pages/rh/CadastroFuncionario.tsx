@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Check } from 'lucide-react';
-import { create } from '../../lib/storage';
-import { STORAGE_KEYS, type FuncionarioRH } from '../../lib/types';
+import { funcionariosRH } from '../../lib/api';
 
 export default function CadastroFuncionario() {
   const navigate = useNavigate();
@@ -22,15 +21,16 @@ export default function CadastroFuncionario() {
 
   const handleSave = () => {
     if (!nome.trim()) return;
-    create<FuncionarioRH>(STORAGE_KEYS.FUNCIONARIOS_RH, {
+    funcionariosRH.criar({
       codigoInterno: `FUN-${Date.now()}`, nome, sobrenome, apelido, admissao,
       nacionalidade, nascimento, sexo, cpf, rg, pis, email, telefone,
       notificacao: 0, whatsapp: 0, cep, rua, bairro, numero, complemento, estado, cidade,
       escolaridade, cei: '', fornecedor: '', ocupacao, tiposDocumentos: '',
       certificacoes, foto: '', documentos: [],
-    } as Omit<FuncionarioRH, 'id'>);
-    setSaved(true);
-    setTimeout(() => navigate('/rh/lista'), 1500);
+    }).then(() => {
+      setSaved(true);
+      setTimeout(() => navigate('/rh/lista'), 1500);
+    }).catch(() => {});
   };
 
   const inputClass = "w-full bg-surface-container-low border border-border";

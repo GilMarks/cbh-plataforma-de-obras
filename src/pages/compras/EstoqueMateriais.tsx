@@ -1,16 +1,21 @@
-import { useState, useMemo } from 'react';
-import { Search, Plus, X, ArrowDown, ArrowUp, AlertTriangle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, X, ArrowDown, ArrowUp, AlertTriangle } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create, update } from '../../lib/storage';
+import { insumos as insumosApi, obras as obrasApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
-import { STORAGE_KEYS, type Insumo, type MovimentacaoEstoque, type Obra } from '../../lib/types';
+import type { Insumo, Obra } from '../../lib/types';
 
 export default function EstoqueMateriais() {
-  const [insumos, setInsumos] = useState(() => getAll<Insumo>(STORAGE_KEYS.INSUMOS));
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
+  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
   const user = getCurrentUser();
+
+  useEffect(() => {
+    insumosApi.listar().then(setInsumos).catch(() => {});
+    obrasApi.listar().then(setObras).catch(() => {});
+  }, []);
   const [search, setSearch] = useState('');
 
   // Modal
@@ -21,7 +26,7 @@ export default function EstoqueMateriais() {
   const [movObra, setMovObra] = useState('');
   const [movObs, setMovObs] = useState('');
 
-  const refresh = () => setInsumos(getAll<Insumo>(STORAGE_KEYS.INSUMOS));
+  const refresh = () => insumosApi.listar().then(setInsumos).catch(() => {});
 
   const filtered = useMemo(() => {
     if (!search) return insumos;
@@ -45,23 +50,13 @@ export default function EstoqueMateriais() {
     const qty = Number(movQtd);
     if (qty <= 0) return;
 
-    create<MovimentacaoEstoque>(STORAGE_KEYS.MOVIMENTACOES_ESTOQUE, {
-      insumoId: selectedInsumo.id,
-      insumoNome: selectedInsumo.nome,
+    insumosApi.movimentar(selectedInsumo.id, {
       tipo: modalTipo,
       quantidade: qty,
       obraDestino: modalTipo === 'Saida' ? movObra : '',
-      data: new Date().toISOString().split('T')[0],
       responsavel: user?.login || '',
       observacoes: movObs,
-    } as Omit<MovimentacaoEstoque, 'id'>);
-
-    const novoEstoque = modalTipo === 'Entrada'
-      ? selectedInsumo.estoqueAtual + qty
-      : Math.max(0, selectedInsumo.estoqueAtual - qty);
-
-    update<Insumo>(STORAGE_KEYS.INSUMOS, selectedInsumo.id, { estoqueAtual: novoEstoque });
-    refresh();
+    }).then(() => refresh()).catch(() => {});
     setModalOpen(false);
   };
 

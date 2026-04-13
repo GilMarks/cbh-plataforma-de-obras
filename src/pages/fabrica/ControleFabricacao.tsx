@@ -1,22 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Minus, Check, Factory } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
-import { getAll, update } from '../../lib/storage';
-import { STORAGE_KEYS, type Solicitacao } from '../../lib/types';
-import { getCurrentUser } from '../../lib/storage';
+import { fabrica as fabricaApi } from '../../lib/api';
+import type { Solicitacao } from '../../lib/types';
 
 type TabType = 'Paineis' | 'Pilares' | 'Sapatas';
 
 export default function ControleFabricacao() {
-  const [solicitacoes, setSolicitacoes] = useState(() =>
-    getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES).filter(s => s.statusAutorizacao === 'Autorizado')
-  );
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('Paineis');
   const [search, setSearch] = useState('');
   const [lancamentos, setLancamentos] = useState<Record<number, number>>({});
   const [lancadoState, setLancadoState] = useState<Record<number, boolean>>({});
 
-  const user = getCurrentUser();
+  useEffect(() => {
+    fabricaApi.listarProducao().then(setSolicitacoes).catch(() => {});
+  }, []);
   const today = new Date();
   const dayName = today.toLocaleDateString('pt-BR', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
@@ -81,52 +80,25 @@ export default function ControleFabricacao() {
     const qtd = lancamentos[solId] || 0;
     if (qtd <= 0) return;
 
-    const sol = solicitacoes.find(s => s.id === solId);
-    if (!sol) return;
+    const tipo = activeTab === 'Paineis' ? 'painel' : activeTab === 'Pilares' ? 'pilar' : 'sapata';
 
-    const now = new Date().toISOString().split('T')[0];
-    let updates: Partial<Solicitacao> = {};
-
-    if (activeTab === 'Paineis') {
-      const newFab = sol.fabricadoPainel + qtd;
-      updates = {
-        fabricadoPainel: newFab,
-        saldoPainel: sol.paineis - newFab,
-        statusPainel: newFab >= sol.paineis ? 'Fabricado' : 'Parcial',
-        historicoPainel: [...sol.historicoPainel, { data: now, qtd, responsavel: user?.login || '' }],
-      };
-    } else if (activeTab === 'Pilares') {
-      const newFab = sol.fabricadoPilar + qtd;
-      updates = {
-        fabricadoPilar: newFab,
-        saldoPilar: sol.pilares - newFab,
-        statusPilar: newFab >= sol.pilares ? 'Fabricado' : 'Parcial',
-        historicoPilar: [...sol.historicoPilar, { data: now, qtd, responsavel: user?.login || '' }],
-      };
-    } else {
-      const newFab = sol.fabricadoSapata + qtd;
-      updates = {
-        fabricadoSapata: newFab,
-        saldoSapata: sol.sapatas - newFab,
-        statusSapata: newFab >= sol.sapatas ? 'Fabricado' : 'Parcial',
-        historicoSapata: [...sol.historicoSapata, { data: now, qtd, responsavel: user?.login || '' }],
-      };
-    }
-
-    update<Solicitacao>(STORAGE_KEYS.SOLICITACOES, solId, updates);
-
-    // Feedback "Lancado!"
+    // Feedback imediato
     setLancadoState(prev => ({ ...prev, [solId]: true }));
-    setTimeout(() => {
-      setLancadoState(prev => ({ ...prev, [solId]: false }));
-    }, 1500);
-
-    setSolicitacoes(getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES).filter(s => s.statusAutorizacao === 'Autorizado'));
     setLancamentos(prev => ({ ...prev, [solId]: 0 }));
+
+    fabricaApi.lancarProducao(solId, tipo, qtd)
+      .then(() => fabricaApi.listarProducao())
+      .then(setSolicitacoes)
+      .catch(() => {})
+      .finally(() => {
+        setTimeout(() => {
+          setLancadoState(prev => ({ ...prev, [solId]: false }));
+        }, 1500);
+      });
   };
 
   const totalLancadoHoje = solicitacoes.reduce((sum, sol) => {
-    const hist = activeTab === 'Paineis' ? sol.historicoPainel : activeTab === 'Pilares' ? sol.historicoPilar : sol.historicoSapata;
+    const hist = (activeTab === 'Paineis' ? sol.historicoPainel : activeTab === 'Pilares' ? sol.historicoPilar : sol.historicoSapata) ?? [];
     return sum + hist.filter(h => h.data === new Date().toISOString().split('T')[0]).reduce((s, h) => s + h.qtd, 0);
   }, 0);
 

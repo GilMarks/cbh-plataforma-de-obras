@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, X, HardHat } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create, update, remove } from '../../lib/storage';
-import { STORAGE_KEYS, type Obra, type Solicitacao } from '../../lib/types';
+import { obras as obrasApi, solicitacoes as solicitacoesApi } from '../../lib/api';
+import type { Obra, Solicitacao } from '../../lib/types';
 
 export default function VisaoGeralObra() {
-  const [obras, setObras] = useState(() => getAll<Obra>(STORAGE_KEYS.OBRAS));
-  const solicitacoes = getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES);
+  const [obras, setObras] = useState<Obra[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+
+  useEffect(() => {
+    obrasApi.listar().then(setObras).catch(() => {});
+    solicitacoesApi.listar().then(setSolicitacoes).catch(() => {});
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -19,7 +24,7 @@ export default function VisaoGeralObra() {
   const [pilaresMin, setPilaresMin] = useState('0');
   const [sapatasMin, setSapatasMin] = useState('0');
 
-  const refresh = () => setObras(getAll<Obra>(STORAGE_KEYS.OBRAS));
+  const refresh = () => { obrasApi.listar().then(setObras).catch(() => {}); };
 
   const openNew = () => { setEditId(null); setNome(''); setCliente(''); setLocal(''); setObs(''); setPaineisMin('0'); setPilaresMin('0'); setSapatasMin('0'); setModalOpen(true); };
   const openEdit = (o: Obra) => { setEditId(o.id); setNome(o.nome); setCliente(o.cliente); setLocal(o.local); setObs(o.observacoes); setPaineisMin(String(o.paineisMin)); setPilaresMin(String(o.pilaresMin)); setSapatasMin(String(o.sapatasMin)); setModalOpen(true); };
@@ -27,11 +32,11 @@ export default function VisaoGeralObra() {
   const handleSave = () => {
     if (!nome.trim()) return;
     const data = { nome, cliente, local, observacoes: obs, paineisMin: Number(paineisMin), pilaresMin: Number(pilaresMin), sapatasMin: Number(sapatasMin) };
-    if (editId) { update<Obra>(STORAGE_KEYS.OBRAS, editId, data); } else { create<Obra>(STORAGE_KEYS.OBRAS, data as Omit<Obra, 'id'>); }
-    refresh(); setModalOpen(false);
+    const promise = editId ? obrasApi.atualizar(editId, data) : obrasApi.criar(data as Omit<Obra, 'id'>);
+    promise.then(() => { refresh(); setModalOpen(false); }).catch(() => {});
   };
 
-  const handleDelete = (id: number) => { if (confirm('Excluir esta obra?')) { remove<Obra>(STORAGE_KEYS.OBRAS, id); refresh(); } };
+  const handleDelete = (id: number) => { if (confirm('Excluir esta obra?')) { obrasApi.remover(id).then(() => refresh()).catch(() => {}); } };
 
   const getObraProgress = (obraId: number) => {
     const solics = solicitacoes.filter(s => s.obraId === obraId);

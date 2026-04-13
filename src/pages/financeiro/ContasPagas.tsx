@@ -1,14 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, FileDown, Eye, X } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll } from '../../lib/storage';
-import { STORAGE_KEYS, type LancamentoFinanceiro } from '../../lib/types';
+import { lancamentos as lancamentosApi } from '../../lib/api';
+import type { LancamentoFinanceiro } from '../../lib/types';
 
 export default function ContasPagas() {
-  const lancamentos = useMemo(() =>
-    getAll<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS).filter(l => l.status === 'Pago'),
-  []);
+  const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
+
+  useEffect(() => {
+    lancamentosApi.listar({ status: 'Pago' }).then(setLancamentos).catch(() => {});
+  }, []);
   const [search, setSearch] = useState('');
   const [filtroObra, setFiltroObra] = useState('');
   const [modalOpen, setModalOpen] = useState(false);

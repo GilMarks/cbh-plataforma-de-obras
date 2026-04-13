@@ -1,8 +1,8 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Boxes, CheckSquare, Search, Truck, X } from 'lucide-react';
-import { create, getAll, update } from '../../lib/storage';
-import { STORAGE_KEYS, type Carregamento, type Montagem, type Obra } from '../../lib/types';
+import { carregamentos as carregamentosApi, montagens as montagensApi, obras as obrasApi } from '../../lib/api';
+import type { Carregamento, Obra } from '../../lib/types';
 
 const ACTIVE_STATUSES: Array<Carregamento['status']> = ['Carregado', 'Entregue'];
 
@@ -60,11 +60,18 @@ function EmptyTableState({ onCreate }: { onCreate: () => void }) {
 }
 
 export default function PaineisMontados() {
-  const [carregamentos, setCarregamentos] = useState(() =>
-    getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS).filter(item => ACTIVE_STATUSES.includes(item.status)),
-  );
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
+  const [carregamentos, setCarregamentos] = useState<Carregamento[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
   const navigate = useNavigate();
+
+  const refresh = () => {
+    carregamentosApi.listar().then(data => setCarregamentos(data.filter(item => ACTIVE_STATUSES.includes(item.status)))).catch(() => {});
+  };
+
+  useEffect(() => {
+    refresh();
+    obrasApi.listar().then(setObras).catch(() => {});
+  }, []);
 
   const [search, setSearch] = useState('');
   const [filterObra, setFilterObra] = useState('');
@@ -72,9 +79,6 @@ export default function PaineisMontados() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCarreg, setSelectedCarreg] = useState<Carregamento | null>(null);
   const [equipe, setEquipe] = useState('');
-
-  const refresh = () =>
-    setCarregamentos(getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS).filter(item => ACTIVE_STATUSES.includes(item.status)));
 
   const filtered = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -115,23 +119,15 @@ export default function PaineisMontados() {
 
     const today = new Date().toISOString().split('T')[0];
 
-    selectedCarreg.paineis.forEach(painel => {
-      create<Montagem>(STORAGE_KEYS.MONTAGENS, {
-        obraId: selectedCarreg.obraId,
-        obraNome: selectedCarreg.obraNome,
-        carregamentoId: selectedCarreg.id,
-        painelId: `${painel.tipo}-${painel.posicaoCarregamento}-${painel.lado}`,
-        tipo: painel.tipo,
-        dimensao: painel.dimensao,
-        equipeResponsavel: equipe,
-        dataMontagem: today,
-        observacoes: '',
-      } as Omit<Montagem, 'id'>);
-    });
-
-    update<Carregamento>(STORAGE_KEYS.CARREGAMENTOS, selectedCarreg.id, { status: 'Entregue' });
-    refresh();
-    setModalOpen(false);
+    montagensApi.registrar({
+      carregamentoId: selectedCarreg.id,
+      equipeResponsavel: equipe,
+      dataMontagem: today,
+      observacoes: '',
+    }).then(() => {
+      refresh();
+      setModalOpen(false);
+    }).catch(() => {});
   };
 
   return (

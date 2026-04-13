@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, X, Database } from 'lucide-react';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create, update, remove } from '../../lib/storage';
-import { STORAGE_KEYS, type Insumo, type Fornecedor } from '../../lib/types';
+import { insumos as insumosApi, fornecedores as fornecedoresApi } from '../../lib/api';
+import type { Insumo, Fornecedor } from '../../lib/types';
 
 type Tab = 'insumos' | 'fornecedores';
 
 export default function Cadastramento() {
   const [activeTab, setActiveTab] = useState<Tab>('insumos');
-  const [insumos, setInsumos] = useState(() => getAll<Insumo>(STORAGE_KEYS.INSUMOS));
-  const [fornecedores, setFornecedores] = useState(() => getAll<Fornecedor>(STORAGE_KEYS.FORNECEDORES));
+  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+
+  useEffect(() => {
+    refreshInsumos();
+    refreshFornecedores();
+  }, []);
 
   // Insumo modal
   const [insModalOpen, setInsModalOpen] = useState(false);
@@ -24,36 +29,32 @@ export default function Cadastramento() {
   const [fornNome, setFornNome] = useState('');
   const [fornFone, setFornFone] = useState('');
 
-  const refreshInsumos = () => setInsumos(getAll<Insumo>(STORAGE_KEYS.INSUMOS));
-  const refreshFornecedores = () => setFornecedores(getAll<Fornecedor>(STORAGE_KEYS.FORNECEDORES));
+  const refreshInsumos = () => { insumosApi.listar().then(setInsumos).catch(() => {}); };
+  const refreshFornecedores = () => { fornecedoresApi.listar().then(setFornecedores).catch(() => {}); };
 
   // Insumo handlers
   const openNewInsumo = () => { setInsEditId(null); setInsNome(''); setInsUnidade('un'); setInsEstoqueMinimo('0'); setInsModalOpen(true); };
   const openEditInsumo = (i: Insumo) => { setInsEditId(i.id); setInsNome(i.nome); setInsUnidade(i.unidade); setInsEstoqueMinimo(String(i.estoqueMinimo)); setInsModalOpen(true); };
   const handleSaveInsumo = () => {
     if (!insNome.trim()) return;
-    if (insEditId) {
-      update<Insumo>(STORAGE_KEYS.INSUMOS, insEditId, { nome: insNome, unidade: insUnidade, estoqueMinimo: Number(insEstoqueMinimo) });
-    } else {
-      create<Insumo>(STORAGE_KEYS.INSUMOS, { nome: insNome, unidade: insUnidade, coeficiente: 0, estoqueAtual: 0, estoqueMinimo: Number(insEstoqueMinimo) } as Omit<Insumo, 'id'>);
-    }
-    refreshInsumos(); setInsModalOpen(false);
+    const promise = insEditId
+      ? insumosApi.atualizar(insEditId, { nome: insNome, unidade: insUnidade, estoqueMinimo: Number(insEstoqueMinimo) })
+      : insumosApi.criar({ nome: insNome, unidade: insUnidade, coeficiente: 0, estoqueAtual: 0, estoqueMinimo: Number(insEstoqueMinimo) });
+    promise.then(() => { refreshInsumos(); setInsModalOpen(false); }).catch(() => {});
   };
-  const handleDeleteInsumo = (id: number) => { if (confirm('Excluir este insumo?')) { remove<Insumo>(STORAGE_KEYS.INSUMOS, id); refreshInsumos(); } };
+  const handleDeleteInsumo = (id: number) => { if (confirm('Excluir este insumo?')) { insumosApi.remover(id).then(() => refreshInsumos()).catch(() => {}); } };
 
   // Fornecedor handlers
   const openNewForn = () => { setFornEditId(null); setFornNome(''); setFornFone(''); setFornModalOpen(true); };
   const openEditForn = (f: Fornecedor) => { setFornEditId(f.id); setFornNome(f.nome); setFornFone(f.fone); setFornModalOpen(true); };
   const handleSaveForn = () => {
     if (!fornNome.trim()) return;
-    if (fornEditId) {
-      update<Fornecedor>(STORAGE_KEYS.FORNECEDORES, fornEditId, { nome: fornNome, fone: fornFone });
-    } else {
-      create<Fornecedor>(STORAGE_KEYS.FORNECEDORES, { nome: fornNome, fone: fornFone } as Omit<Fornecedor, 'id'>);
-    }
-    refreshFornecedores(); setFornModalOpen(false);
+    const promise = fornEditId
+      ? fornecedoresApi.atualizar(fornEditId, { nome: fornNome, fone: fornFone })
+      : fornecedoresApi.criar({ nome: fornNome, fone: fornFone });
+    promise.then(() => { refreshFornecedores(); setFornModalOpen(false); }).catch(() => {});
   };
-  const handleDeleteForn = (id: number) => { if (confirm('Excluir este fornecedor?')) { remove<Fornecedor>(STORAGE_KEYS.FORNECEDORES, id); refreshFornecedores(); } };
+  const handleDeleteForn = (id: number) => { if (confirm('Excluir este fornecedor?')) { fornecedoresApi.remover(id).then(() => refreshFornecedores()).catch(() => {}); } };
 
   return (
     <div>

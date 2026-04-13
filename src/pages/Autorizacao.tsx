@@ -1,19 +1,15 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Check, X, Shield, CheckCircle,
   FileText, AlertTriangle, Truck, Package, Wrench,
   ChevronRight, MapPin, User, Calendar,
 } from 'lucide-react';
-import { getAll, update, create } from '../lib/storage';
-import { getCurrentUser } from '../lib/storage';
 import { criarResumoSequenciaCarregamento } from '../lib/carregamento';
-import {
-  STORAGE_KEYS,
-  type Solicitacao,
-  type SolicitacaoCompra,
-  type Carregamento,
-  type LancamentoFinanceiro,
-  type Processo,
+import { autorizacao as autorizacaoApi } from '../lib/api';
+import type {
+  Solicitacao,
+  SolicitacaoCompra,
+  Carregamento,
 } from '../lib/types';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -538,24 +534,22 @@ function AbaLogistica({
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function Autorizacao() {
-  const user = getCurrentUser();
-  const today = new Date().toISOString().split('T')[0];
-  const userName = user?.login ?? '';
-
-  // Estado de dados (re-carregado ao aprovar/negar via refreshKey)
-  const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<TabKey>('compras');
   const [dismissing, setDismissing] = useState<Set<number>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastId = useRef(0);
 
-  // Dados filtrados por status pendente
-  const compras = getAll<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA)
-    .filter(s => s.statusFluxo === 'AGUARDANDO_AUTORIZACAO');
-  const fabricacoes = getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES)
-    .filter(s => s.statusAutorizacao === 'Aguardando');
-  const logistica = getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS)
-    .filter(c => c.statusAutorizacao === 'Aguardando');
+  const [compras, setCompras] = useState<SolicitacaoCompra[]>([]);
+  const [fabricacoes, setFabricacoes] = useState<Solicitacao[]>([]);
+  const [logistica, setLogistica] = useState<Carregamento[]>([]);
+
+  const carregarDados = useCallback(() => {
+    autorizacaoApi.compras().then(setCompras).catch(() => {});
+    autorizacaoApi.fabricacao().then(setFabricacoes).catch(() => {});
+    autorizacaoApi.logistica().then(setLogistica).catch(() => {});
+  }, []);
+
+  useEffect(() => { carregarDados(); }, [carregarDados]);
 
   const total = compras.length + fabricacoes.length + logistica.length;
 
@@ -566,67 +560,50 @@ export default function Autorizacao() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3800);
   }, []);
 
-  // Dismiss animado — espera 320ms para remover do DOM
-  const dismiss = useCallback((id: number, action: () => void, msg: ToastItem) => {
+  // Dismiss animado — espera 320ms para remover do DOM e recarregar
+  const dismiss = useCallback((id: number, action: () => Promise<unknown>, msg: ToastItem) => {
     setDismissing(prev => new Set(prev).add(id));
     addToast(msg.type, msg.message);
-    setTimeout(() => {
-      action();
-      setDismissing(prev => { const s = new Set(prev); s.delete(id); return s; });
-      setRefreshKey(k => k + 1);
-    }, 320);
-  }, [addToast]);
+    action().finally(() => {
+      setTimeout(() => {
+        setDismissing(prev => { const s = new Set(prev); s.delete(id); return s; });
+        carregarDados();
+      }, 320);
+    });
+  }, [addToast, carregarDados]);
 
   // ── Handlers Compras ─────────────────────────────────────────────────────────
   const handleNegarCompra = useCallback((id: number) => {
-    dismiss(id, () => update<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA, id, { statusFluxo: 'NEGADO', status: 'NEGADO' }),
+    dismiss(id, () => autorizacaoApi.negarCompra(id),
       { id: 0, type: 'negado', message: 'Solicitação de compra negada.' });
   }, [dismiss]);
 
   const handleAprovarCompra = useCallback((s: SolicitacaoCompra) => {
-    dismiss(s.id, () => {
-      update<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA, s.id, { statusFluxo: 'AUTORIZADO', status: 'AUTORIZADO' });
-      const processos = getAll<Processo>(STORAGE_KEYS.PROCESSOS);
-      const proc = processos.find(p => p.item === s.item && p.obra === s.obraNome);
-      if (proc) {
-        update<Processo>(STORAGE_KEYS.PROCESSOS, proc.id, {
-          status: 'NO_FINANCEIRO',
-          timeline: [...proc.timeline,
-            { data: today, status: 'AUTORIZADO', responsavel: userName },
-            { data: today, status: 'NO_FINANCEIRO', responsavel: 'Sistema' },
-          ],
-        });
-      }
-      create<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS, {
-        tipo: 'Despesa', centro: s.obraNome, descricao: s.item,
-        fornecedor: s.fornecedor, valor: s.valor, formaPagamento: s.pagamento,
-        status: 'Pendente', procId: proc?.id ?? 0,
-        data: today, emissao: today, vencimento: '',
-      } as Omit<LancamentoFinanceiro, 'id'>);
-    }, { id: 0, type: 'aprovado', message: `Compra de "${s.item}" aprovada e enviada ao financeiro.` });
-  }, [dismiss, today, userName]);
+    dismiss(s.id, () => autorizacaoApi.aprovarCompra(s.id),
+      { id: 0, type: 'aprovado', message: `Compra de "${s.item}" aprovada e enviada ao financeiro.` });
+  }, [dismiss]);
 
   // ── Handlers Fabricação ──────────────────────────────────────────────────────
   const handleNegarFab = useCallback((id: number) => {
-    dismiss(id, () => update<Solicitacao>(STORAGE_KEYS.SOLICITACOES, id, { statusAutorizacao: 'Negado', autorizadoPor: userName, dataAutorizacao: today }),
+    dismiss(id, () => autorizacaoApi.negarFabricacao(id),
       { id: 0, type: 'negado', message: 'Solicitação de fabricação negada.' });
-  }, [dismiss, today, userName]);
+  }, [dismiss]);
 
   const handleAprovarFab = useCallback((id: number) => {
-    dismiss(id, () => update<Solicitacao>(STORAGE_KEYS.SOLICITACOES, id, { statusAutorizacao: 'Autorizado', autorizadoPor: userName, dataAutorizacao: today }),
+    dismiss(id, () => autorizacaoApi.aprovarFabricacao(id),
       { id: 0, type: 'aprovado', message: 'Solicitação de fabricação aprovada.' });
-  }, [dismiss, today, userName]);
+  }, [dismiss]);
 
   // ── Handlers Logística ───────────────────────────────────────────────────────
   const handleNegarLog = useCallback((id: number) => {
-    dismiss(id, () => update<Carregamento>(STORAGE_KEYS.CARREGAMENTOS, id, { statusAutorizacao: 'Negado', autorizadoPor: userName, dataAutorizacao: today }),
+    dismiss(id, () => autorizacaoApi.negarLogistica(id),
       { id: 0, type: 'negado', message: 'Carregamento negado.' });
-  }, [dismiss, today, userName]);
+  }, [dismiss]);
 
   const handleAprovarLog = useCallback((id: number) => {
-    dismiss(id, () => update<Carregamento>(STORAGE_KEYS.CARREGAMENTOS, id, { statusAutorizacao: 'Autorizado', autorizadoPor: userName, dataAutorizacao: today, status: 'Autorizado' }),
+    dismiss(id, () => autorizacaoApi.aprovarLogistica(id),
       { id: 0, type: 'aprovado', message: 'Carregamento autorizado com sucesso.' });
-  }, [dismiss, today, userName]);
+  }, [dismiss]);
 
   // ── Tabs config ──────────────────────────────────────────────────────────────
   const TABS: { key: TabKey; label: string; count: number; icon: React.ReactNode }[] = [
@@ -636,7 +613,7 @@ export default function Autorizacao() {
   ];
 
   return (
-    <div key={refreshKey}>
+    <div>
 
       {/* ── Page header ── */}
       <p style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: C.text.muted, marginBottom: 8 }}>

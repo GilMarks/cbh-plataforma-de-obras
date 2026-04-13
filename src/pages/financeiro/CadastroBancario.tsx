@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, X, Landmark } from 'lucide-react';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create, update, remove } from '../../lib/storage';
-import { STORAGE_KEYS, type Banco } from '../../lib/types';
+import { bancos as bancosApi } from '../../lib/api';
+import type { Banco } from '../../lib/types';
 
 const BANK_COLORS = ['bg-primary', 'bg-danger', 'bg-tertiary', 'bg-secondary', 'bg-success'];
 
 export default function CadastroBancario() {
-  const [bancos, setBancos] = useState(() => getAll<Banco>(STORAGE_KEYS.BANCOS));
+  const [bancos, setBancos] = useState<Banco[]>([]);
+
+  useEffect(() => { refresh(); }, []);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [nome, setNome] = useState('');
@@ -18,7 +20,7 @@ export default function CadastroBancario() {
   const [saldoInicial, setSaldoInicial] = useState('0,00');
   const [contaAtiva, setContaAtiva] = useState(true);
 
-  const refresh = () => setBancos(getAll<Banco>(STORAGE_KEYS.BANCOS));
+  const refresh = () => { bancosApi.listar().then(setBancos).catch(() => {}); };
 
   const openNew = () => {
     setEditingId(null);
@@ -42,19 +44,15 @@ export default function CadastroBancario() {
 
   const handleSave = () => {
     if (!nome.trim()) return;
-    if (editingId) {
-      update<Banco>(STORAGE_KEYS.BANCOS, editingId, { nome, agencia, conta });
-    } else {
-      create<Banco>(STORAGE_KEYS.BANCOS, { nome, agencia, conta } as Omit<Banco, 'id'>);
-    }
-    refresh();
-    setModalOpen(false);
+    const promise = editingId
+      ? bancosApi.atualizar(editingId, { nome, agencia, conta })
+      : bancosApi.criar({ nome, agencia, conta });
+    promise.then(() => { refresh(); setModalOpen(false); }).catch(() => {});
   };
 
   const handleDelete = (id: number) => {
     if (!confirm('Deseja excluir esta conta bancaria?')) return;
-    remove<Banco>(STORAGE_KEYS.BANCOS, id);
-    refresh();
+    bancosApi.remover(id).then(() => refresh()).catch(() => {});
   };
 
   return (

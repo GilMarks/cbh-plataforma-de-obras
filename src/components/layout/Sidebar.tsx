@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { getMenuFiltrado, type MenuItem } from '../../lib/permissions';
 import { clearCurrentUser, getCurrentUser } from '../../lib/storage';
+import { clearAuth } from '../../lib/api';
 import { useSidebar } from '../../contexts/SidebarContext';
 import iconLogo from '../../assets/icon-logo.png';
 
@@ -57,6 +58,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     clearCurrentUser();
+    clearAuth();
     navigate('/login');
   };
 

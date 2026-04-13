@@ -1,16 +1,22 @@
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { DollarSign, Package, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import KPICard from '../components/shared/KPICard';
-import { getAll } from '../lib/storage';
-import { STORAGE_KEYS, type LancamentoFinanceiro, type Solicitacao, type Obra } from '../lib/types';
+import { lancamentos as lancamentosApi, obras as obrasApi, solicitacoes as solicitacoesApi } from '../lib/api';
+import type { LancamentoFinanceiro, Solicitacao, Obra } from '../lib/types';
 
 const CHART_HEX = ['#004ac6', '#f59e0b', '#16a34a', '#ef4444'];
 
 export default function Dashboard() {
-  const lancamentos = useMemo(() => getAll<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS), []);
-  const solicitacoes = useMemo(() => getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES), []);
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
+  const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
+
+  useEffect(() => {
+    lancamentosApi.listar().then(setLancamentos).catch(() => {});
+    solicitacoesApi.listar().then(setSolicitacoes).catch(() => {});
+    obrasApi.listar().then(setObras).catch(() => {});
+  }, []);
 
   const totalReceitas = lancamentos.filter(l => l.tipo === 'Receita').reduce((s, l) => s + l.valor, 0);
   const totalDespesas = lancamentos.filter(l => l.tipo === 'Despesa').reduce((s, l) => s + l.valor, 0);

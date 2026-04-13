@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Package, AlertCircle, CheckCircle, Truck, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll } from '../../lib/storage';
-import { STORAGE_KEYS, type Solicitacao } from '../../lib/types';
+import { solicitacoes as solicitacoesApi } from '../../lib/api';
+import type { Solicitacao } from '../../lib/types';
 
 type TabView = 'Visao Geral' | 'Relatorios';
 interface PecaEstoque {
@@ -27,7 +27,11 @@ export default function EstoquePecas() {
   const [selectedPieces, setSelectedPieces] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
-  const solicitacoes = useMemo(() => getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES), []);
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+
+  useEffect(() => {
+    solicitacoesApi.listar().then(setSolicitacoes).catch(() => {});
+  }, []);
 
   const pecas = useMemo<PecaEstoque[]>(() => {
     const items: PecaEstoque[] = [];

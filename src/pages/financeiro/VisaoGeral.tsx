@@ -1,12 +1,11 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Wallet, AlertTriangle, Calendar } from 'lucide-react';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import StatusBadge from '../../components/shared/StatusBadge';
-import { getAll } from '../../lib/storage';
-import { STORAGE_KEYS, type LancamentoFinanceiro } from '../../lib/types';
+import { lancamentos as lancamentosApi } from '../../lib/api';
+import type { LancamentoFinanceiro } from '../../lib/types';
 
 type DateRange = 'mes-atual' | 'ultimos-30' | 'ano-atual';
 
@@ -111,8 +110,12 @@ function PieTooltip({ active, payload }: { active?: boolean; payload?: Array<{ n
 }
 
 export default function VisaoGeral() {
-  const lancamentos = useMemo(() => getAll<LancamentoFinanceiro>(STORAGE_KEYS.LANCAMENTOS), []);
+  const [lancamentos, setLancamentos] = useState<LancamentoFinanceiro[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>('mes-atual');
+
+  useEffect(() => {
+    lancamentosApi.listar().then(setLancamentos).catch(() => {});
+  }, []);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Animate on range change

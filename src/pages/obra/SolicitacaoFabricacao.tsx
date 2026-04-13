@@ -1,18 +1,23 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create } from '../../lib/storage';
+import { solicitacoes as solicitacoesApi, obras as obrasApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
-import { STORAGE_KEYS, type Solicitacao, type Obra } from '../../lib/types';
+import type { Solicitacao, Obra } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function SolicitacaoFabricacao() {
-  const [solicitacoes, setSolicitacoes] = useState(() => getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES));
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
   const user = getCurrentUser();
+
+  useEffect(() => {
+    solicitacoesApi.listar().then(setSolicitacoes).catch(() => {});
+    obrasApi.listar().then(setObras).catch(() => {});
+  }, []);
   const [activeTab, setActiveTab] = useState<'pendentes' | 'concluidas'>('pendentes');
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,16 +28,16 @@ export default function SolicitacaoFabricacao() {
   const [formPainelComp, setFormPainelComp] = useState('5');
   const [formPainelAlt, setFormPainelAlt] = useState('3');
   const [formTipoPainel, setFormTipoPainel] = useState('Liso');
-  const [formRaPainel, setFormRaPainel] = useState('');
+  const [formRaPainel, _setFormRaPainel] = useState('');
   const [formPilares, setFormPilares] = useState('0');
   const [formPilarAlt, setFormPilarAlt] = useState('3');
-  const [formBainhaPilar, setFormBainhaPilar] = useState('0');
+  const [formBainhaPilar, _setFormBainhaPilar] = useState('0');
   const [formSapatas, setFormSapatas] = useState('0');
   const [formTamanhoSapata, setFormTamanhoSapata] = useState('Grande');
-  const [formTipoSapata, setFormTipoSapata] = useState('Normal');
+  const [formTipoSapata, _setFormTipoSapata] = useState('Normal');
   const [formObs, setFormObs] = useState('');
 
-  const refresh = () => setSolicitacoes(getAll<Solicitacao>(STORAGE_KEYS.SOLICITACOES));
+  const refresh = () => solicitacoesApi.listar().then(setSolicitacoes).catch(() => {});
 
   const isConcluida = (s: Solicitacao) => {
     const pOk = s.paineis === 0 || s.statusPainel === 'Fabricado';
@@ -60,7 +65,7 @@ export default function SolicitacaoFabricacao() {
     const sapatas = Number(formSapatas) || 0;
     if (paineis + pilares + sapatas === 0) return;
 
-    create<Solicitacao>(STORAGE_KEYS.SOLICITACOES, {
+    solicitacoesApi.criar({
       obraId: obra.id, obraNome: obra.nome, clienteNome: obra.cliente,
       paineis, painelComp: Number(formPainelComp), painelAlt: Number(formPainelAlt),
       tipoPainel: formTipoPainel, raPainel: formRaPainel,
@@ -73,9 +78,8 @@ export default function SolicitacaoFabricacao() {
       solicitante: user?.login || '', cargoSolicitante: user?.cargo || '',
       dataSolicitacaoRegistro: new Date().toISOString().split('T')[0],
       statusAutorizacao: 'Aguardando', autorizadoPor: '', dataAutorizacao: '',
-    } as Omit<Solicitacao, 'id'>);
+    }).then(() => refresh()).catch(() => {});
 
-    refresh();
     setModalOpen(false);
     setFormObraId(''); setFormPaineis('0'); setFormPilares('0'); setFormSapatas('0'); setFormObs('');
   };

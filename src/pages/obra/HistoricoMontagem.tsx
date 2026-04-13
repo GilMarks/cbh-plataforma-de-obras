@@ -1,15 +1,20 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, History } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll } from '../../lib/storage';
-import { STORAGE_KEYS, type Montagem, type Obra } from '../../lib/types';
+import { montagens as montagensApi, obras as obrasApi } from '../../lib/api';
+import type { Montagem, Obra } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function HistoricoMontagem() {
-  const montagens = useState(() => getAll<Montagem>(STORAGE_KEYS.MONTAGENS))[0];
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
+  const [montagens, setMontagens] = useState<Montagem[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
+
+  useEffect(() => {
+    montagensApi.listar().then(setMontagens).catch(() => {});
+    obrasApi.listar().then(setObras).catch(() => {});
+  }, []);
   const [search, setSearch] = useState('');
   const [filterObra, setFilterObra] = useState('');
   const [currentPage, setCurrentPage] = useState(1);

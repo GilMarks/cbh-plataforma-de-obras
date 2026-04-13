@@ -1,21 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, X, UserCog } from 'lucide-react';
 import StatusBadge from '../components/shared/StatusBadge';
 import EmptyState from '../components/shared/EmptyState';
-import { getAll, create, update, remove } from '../lib/storage';
-import { STORAGE_KEYS, type Usuario } from '../lib/types';
+import { usuarios as usuariosApi } from '../lib/api';
+import type { Usuario } from '../lib/types';
 
 const CARGOS = ['Master', 'Mestre', 'Encarregado', 'Compras', 'Financeiro', 'RH', 'Meio-profissional', 'Ferreiro', 'Betoneiro', 'Servente'];
 
 export default function Usuarios() {
-  const [usuarios, setUsuarios] = useState(() => getAll<Usuario>(STORAGE_KEYS.USUARIOS));
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+
+  useEffect(() => { refresh(); }, []);
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
   const [cargo, setCargo] = useState('Mestre');
 
-  const refresh = () => setUsuarios(getAll<Usuario>(STORAGE_KEYS.USUARIOS));
+  const refresh = () => { usuariosApi.listar().then(setUsuarios).catch(() => {}); };
 
   const openNew = () => { setEditId(null); setLogin(''); setSenha(''); setCargo('Mestre'); setModalOpen(true); };
   const openEdit = (u: Usuario) => { setEditId(u.id); setLogin(u.login); setSenha(''); setCargo(u.cargo); setModalOpen(true); };
@@ -23,24 +25,24 @@ export default function Usuarios() {
   const handleSave = () => {
     if (!login.trim()) return;
     const tipo = (cargo === 'Master') ? 'Master' : 'Usuario';
+    let promise: Promise<unknown>;
     if (editId) {
       const updates: Partial<Usuario> = { login, cargo, tipo };
       if (senha) updates.senha = senha;
-      update<Usuario>(STORAGE_KEYS.USUARIOS, editId, updates);
+      promise = usuariosApi.atualizar(editId, updates);
     } else {
       if (!senha) return;
-      create<Usuario>(STORAGE_KEYS.USUARIOS, { login, senha, tipo, cargo, ativo: 1, foto: '' } as Omit<Usuario, 'id'>);
+      promise = usuariosApi.criar({ login, senha, tipo, cargo, ativo: 1, foto: '' });
     }
-    refresh(); setModalOpen(false);
+    promise.then(() => { refresh(); setModalOpen(false); }).catch(() => {});
   };
 
   const handleToggleAtivo = (u: Usuario) => {
-    update<Usuario>(STORAGE_KEYS.USUARIOS, u.id, { ativo: u.ativo ? 0 : 1 });
-    refresh();
+    usuariosApi.toggleAtivo(u.id).then(() => refresh()).catch(() => {});
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Excluir este usuario?')) { remove<Usuario>(STORAGE_KEYS.USUARIOS, id); refresh(); }
+    if (confirm('Excluir este usuario?')) { usuariosApi.remover(id).then(() => refresh()).catch(() => {}); }
   };
 
   return (

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, ArrowRight, Factory, BarChart3, Wrench, type LucideIcon } from 'lucide-react';
-import { getAll, setCurrentUser } from '../lib/storage';
-import { STORAGE_KEYS, type Usuario } from '../lib/types';
+import { apiLogin } from '../lib/api';
 import { getPrimeiraRotaPermitida } from '../lib/permissions';
 import logoWhite from '../assets/logo-white.png';
 import logoFull from '../assets/logo-full.png';
@@ -23,24 +22,18 @@ export default function Login() {
   const [error, setError]           = useState('');
   const [loading, setLoading]       = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const usuarios = getAll<Usuario>(STORAGE_KEYS.USUARIOS);
-      const user = usuarios.find(u => u.login === login && u.senha === senha && u.ativo === 1);
-
-      if (!user) {
-        setError('Usuário ou senha inválidos');
-        setLoading(false);
-        return;
-      }
-
-      setCurrentUser(user);
+    try {
+      const user = await apiLogin(login, senha);
       navigate(getPrimeiraRotaPermitida(user.cargo));
-    }, 500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Usuário ou senha inválidos');
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,15 +1,19 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll } from '../../lib/storage';
-import { STORAGE_KEYS, type MovimentacaoEstoque } from '../../lib/types';
+import { movimentacoesEstoque } from '../../lib/api';
+import type { MovimentacaoEstoque } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function HistoricoConsumo() {
-  const movimentacoes = useState(() => getAll<MovimentacaoEstoque>(STORAGE_KEYS.MOVIMENTACOES_ESTOQUE))[0];
+  const [movimentacoes, setMovimentacoes] = useState<MovimentacaoEstoque[]>([]);
+
+  useEffect(() => {
+    movimentacoesEstoque.historico().then(setMovimentacoes).catch(() => {});
+  }, []);
   const [search, setSearch] = useState('');
   const [filterTipo, setFilterTipo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);

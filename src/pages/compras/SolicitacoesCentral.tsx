@@ -1,21 +1,25 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, X, ChevronLeft, ChevronRight, Eye, Send, FileText } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
-import { getAll, create, update } from '../../lib/storage';
-import { STORAGE_KEYS, type SolicitacaoCompra, type Obra, type Fornecedor, type Processo } from '../../lib/types';
+import { solicitacoesCompra as solicitacoesCompraApi, obras as obrasApi, fornecedores as fornecedoresApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
+import type { SolicitacaoCompra, Obra, Fornecedor } from '../../lib/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function SolicitacoesCentral() {
-  const [solicitacoes, setSolicitacoes] = useState(() =>
-    getAll<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA)
-  );
-  const obras = useMemo(() => getAll<Obra>(STORAGE_KEYS.OBRAS), []);
-  const fornecedores = useMemo(() => getAll<Fornecedor>(STORAGE_KEYS.FORNECEDORES), []);
+  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoCompra[]>([]);
+  const [obras, setObras] = useState<Obra[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const user = getCurrentUser();
+
+  useEffect(() => {
+    solicitacoesCompraApi.listar().then(setSolicitacoes).catch(() => {});
+    obrasApi.listar().then(setObras).catch(() => {});
+    fornecedoresApi.listar().then(setFornecedores).catch(() => {});
+  }, []);
 
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -43,7 +47,7 @@ export default function SolicitacoesCentral() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailSolic, setDetailSolic] = useState<SolicitacaoCompra | null>(null);
 
-  const refresh = () => setSolicitacoes(getAll<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA));
+  const refresh = () => solicitacoesCompraApi.listar().then(setSolicitacoes).catch(() => {});
 
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -74,7 +78,7 @@ export default function SolicitacoesCentral() {
     const obra = obras.find(o => o.id === Number(formObraId));
     if (!obra) return;
 
-    create<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA, {
+    solicitacoesCompraApi.criar({
       obraId: obra.id,
       obraNome: obra.nome,
       setor: 'Obra',
@@ -91,9 +95,8 @@ export default function SolicitacoesCentral() {
       pagamento: '',
       imagemOrcamento: '',
       statusFluxo: 'SOLICITADO',
-    } as Omit<SolicitacaoCompra, 'id'>);
+    }).then(() => refresh()).catch(() => {});
 
-    refresh();
     setModalOpen(false);
     setFormObraId(''); setFormItem(''); setFormQtd(''); setFormUnidade('un'); setFormPrioridade('Media'); setFormObs('');
   };
@@ -109,45 +112,19 @@ export default function SolicitacoesCentral() {
 
   const handleSalvarOrcamento = () => {
     if (!selectedSolic || !orcFornecedor.trim()) return;
-    update<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA, selectedSolic.id, {
+    solicitacoesCompraApi.salvarCotacao(selectedSolic.id, {
       fornecedor: orcFornecedor,
       valor: Number(orcValor) || 0,
       pagamento: orcPagamento,
       imagemOrcamento: orcImagem,
-      statusFluxo: 'EM_ORCAMENTO',
-      status: 'EM_ORCAMENTO',
-    });
-    refresh();
+    }).then(() => refresh()).catch(() => {});
     setOrcModalOpen(false);
   };
 
   const handleEnviarAutorizacao = (s: SolicitacaoCompra) => {
-    update<SolicitacaoCompra>(STORAGE_KEYS.SOLICITACOES_COMPRA, s.id, {
-      statusFluxo: 'AGUARDANDO_AUTORIZACAO',
-      status: 'AGUARDANDO_AUTORIZACAO',
-    });
-
-    // Criar/atualizar processo
-    const config = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONFIG) || '{}');
-    const nextNum = (parseInt(config.numeroProcesso || '0') + 1);
-    const numero = `CP-${String(nextNum).padStart(5, '0')}`;
-    localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify({ ...config, numeroProcesso: String(nextNum) }));
-
-    create<Processo>(STORAGE_KEYS.PROCESSOS, {
-      numero,
-      obra: s.obraNome,
-      item: s.item,
-      qtd: s.quantidade,
-      valor: s.valor,
-      formaPagamento: s.pagamento,
-      status: 'AGUARDANDO_AUTORIZACAO',
-      timeline: [
-        { data: s.data, status: 'SOLICITADO', responsavel: s.solicitante },
-        { data: new Date().toISOString().split('T')[0], status: 'AGUARDANDO_AUTORIZACAO', responsavel: user?.login || '' },
-      ],
-    } as Omit<Processo, 'id'>);
-
-    refresh();
+    solicitacoesCompraApi.enviarAutorizacao(s.id)
+      .then(() => refresh())
+      .catch(() => {});
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,18 +135,6 @@ export default function SolicitacoesCentral() {
     reader.readAsDataURL(file);
   };
 
-  const getStatusLabel = (status: string) => {
-    const map: Record<string, string> = {
-      SOLICITADO: 'Solicitado',
-      EM_ORCAMENTO: 'Em Orcamento',
-      AGUARDANDO_AUTORIZACAO: 'Aguard. Autorizacao',
-      AUTORIZADO: 'Autorizado',
-      NO_FINANCEIRO: 'No Financeiro',
-      PAGO: 'Pago',
-      NEGADO: 'Negado',
-    };
-    return map[status] || status;
-  };
 
   return (
     <div>

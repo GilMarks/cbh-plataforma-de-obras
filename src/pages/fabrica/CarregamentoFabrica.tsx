@@ -1,34 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Truck } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
 import PlanoCarregamentoResumo from '../../components/shared/PlanoCarregamentoResumo';
-import { getAll, getCurrentUser, update } from '../../lib/storage';
+import { carregamentos as carregamentosApi } from '../../lib/api';
 import { listarEtapasOperacionaisCarregamento, totalCamadasNoPlano } from '../../lib/carregamento';
-import { STORAGE_KEYS, type Carregamento } from '../../lib/types';
+import type { Carregamento } from '../../lib/types';
 
 export default function CarregamentoFabrica() {
-  const [carregamentos, setCarregamentos] = useState(() =>
-    getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS).filter(
-      item => item.statusAutorizacao === 'Autorizado' && item.status !== 'Carregado' && item.status !== 'Entregue',
-    ),
-  );
-  const user = getCurrentUser();
+  const [carregamentos, setCarregamentos] = useState<Carregamento[]>([]);
 
-  const refresh = () =>
-    setCarregamentos(
-      getAll<Carregamento>(STORAGE_KEYS.CARREGAMENTOS).filter(
-        item => item.statusAutorizacao === 'Autorizado' && item.status !== 'Carregado' && item.status !== 'Entregue',
-      ),
-    );
+  const refresh = () => {
+    carregamentosApi.fabrica().then(setCarregamentos).catch(() => {});
+  };
+
+  useEffect(() => { refresh(); }, []);
 
   const handleExecutar = (id: number) => {
-    update<Carregamento>(STORAGE_KEYS.CARREGAMENTOS, id, {
-      status: 'Carregado',
-      executadoPor: user?.login || '',
-      dataExecucao: new Date().toISOString().split('T')[0],
-    });
-    refresh();
+    carregamentosApi.executar(id).then(() => refresh()).catch(() => {});
   };
 
   return (
