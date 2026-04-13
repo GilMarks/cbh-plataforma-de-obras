@@ -12,7 +12,7 @@ router = APIRouter()
 CARGOS = ["Master", "Mestre", "Encarregado"]
 
 
-@router.get("/", response_model=list[ObraResponse])
+@router.get("", response_model=list[ObraResponse])
 async def listar_obras(
     db: AsyncSession = Depends(get_db),
     _user=Depends(require_cargo(CARGOS)),
@@ -33,7 +33,7 @@ async def buscar_obra(
     return obra
 
 
-@router.post("/", response_model=ObraResponse)
+@router.post("", response_model=ObraResponse)
 async def criar_obra(
     body: ObraCreate,
     db: AsyncSession = Depends(get_db),

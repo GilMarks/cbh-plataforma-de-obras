@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="CBH Plataforma de Obras API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="CBH Plataforma de Obras API", version="1.0.0", lifespan=lifespan, redirect_slashes=False)
 
 app.add_middleware(
     CORSMiddleware,

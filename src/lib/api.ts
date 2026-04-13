@@ -20,6 +20,48 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 let accessToken: string | null = null;
 
+// Promise de inicialização — restaura accessToken via refresh token.
+// Reutiliza a mesma promise enquanto uma tentativa estiver em andamento.
+let _sessionPromise: Promise<void> | null = null;
+
+function doRefresh(): Promise<void> {
+  const rt = localStorage.getItem('cbh_refresh_token');
+  if (!rt) return Promise.resolve();
+  return fetch(`${API_BASE}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: rt }),
+  }).then(res => {
+    if (res.ok) {
+      return res.json().then((data: { access_token: string }) => {
+        accessToken = data.access_token;
+      });
+    } else {
+      localStorage.removeItem('cbh_refresh_token');
+      localStorage.removeItem('cbh_current_user');
+    }
+  }).catch(() => {
+    // sem conexão — mantém estado atual
+  });
+}
+
+// Inicialização no carregamento do módulo
+_sessionPromise = doRefresh().finally(() => { _sessionPromise = null; });
+
+export function ensureSession(): Promise<void> {
+  // Se já temos accessToken, nada a fazer
+  if (accessToken) return Promise.resolve();
+  // Se já há uma tentativa em andamento, aguarda
+  if (_sessionPromise) return _sessionPromise;
+  // Tenta restaurar via refresh token
+  _sessionPromise = doRefresh().finally(() => { _sessionPromise = null; });
+  return _sessionPromise;
+}
+
+export function hasAccessToken(): boolean {
+  return !!accessToken;
+}
+
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
@@ -84,6 +126,8 @@ async function refreshAccessToken(): Promise<boolean> {
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  await ensureSession();
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),

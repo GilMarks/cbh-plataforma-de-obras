@@ -11,7 +11,7 @@ router = APIRouter()
 CARGOS = ["Master", "Compras", "Mestre", "Encarregado"]
 
 
-@router.get("/", response_model=list[ProcessoResponse])
+@router.get("", response_model=list[ProcessoResponse])
 async def listar_processos(
     status: str | None = None,
     db: AsyncSession = Depends(get_db),

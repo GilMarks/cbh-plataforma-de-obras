@@ -11,7 +11,7 @@ router = APIRouter()
 CARGOS = ["Master", "Compras"]
 
 
-@router.get("/", response_model=list[FornecedorResponse])
+@router.get("", response_model=list[FornecedorResponse])
 async def listar_fornecedores(
     db: AsyncSession = Depends(get_db),
     _user=Depends(require_cargo(CARGOS)),
@@ -20,7 +20,7 @@ async def listar_fornecedores(
     return result.scalars().all()
 
 
-@router.post("/", response_model=FornecedorResponse)
+@router.post("", response_model=FornecedorResponse)
 async def criar_fornecedor(
     body: FornecedorCreate,
     db: AsyncSession = Depends(get_db),

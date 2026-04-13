@@ -14,7 +14,7 @@ router = APIRouter()
 CARGOS = ["Master", "Mestre", "Encarregado"]
 
 
-@router.get("/", response_model=list[SolicitacaoResponse])
+@router.get("", response_model=list[SolicitacaoResponse])
 async def listar_solicitacoes(
     obra_id: int | None = None,
     status_autorizacao: str | None = None,
@@ -42,7 +42,7 @@ async def buscar_solicitacao(
     return s
 
 
-@router.post("/", response_model=SolicitacaoResponse)
+@router.post("", response_model=SolicitacaoResponse)
 async def criar_solicitacao(
     body: SolicitacaoCreate,
     db: AsyncSession = Depends(get_db),

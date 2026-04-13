@@ -13,7 +13,7 @@ router = APIRouter()
 CARGOS = ["Master", "Compras"]
 
 
-@router.get("/", response_model=list[FerramentaResponse])
+@router.get("", response_model=list[FerramentaResponse])
 async def listar_ferramentas(
     db: AsyncSession = Depends(get_db),
     _user=Depends(require_cargo(CARGOS)),
@@ -22,7 +22,7 @@ async def listar_ferramentas(
     return result.scalars().all()
 
 
-@router.post("/", response_model=FerramentaResponse)
+@router.post("", response_model=FerramentaResponse)
 async def criar_ferramenta(
     body: FerramentaCreate,
     db: AsyncSession = Depends(get_db),

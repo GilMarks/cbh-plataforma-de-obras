@@ -11,7 +11,7 @@ router = APIRouter()
 CARGOS = ["Master", "Financeiro"]
 
 
-@router.get("/", response_model=list[BancoResponse])
+@router.get("", response_model=list[BancoResponse])
 async def listar_bancos(
     db: AsyncSession = Depends(get_db),
     _user=Depends(require_cargo(CARGOS)),
@@ -32,7 +32,7 @@ async def buscar_banco(
     return b
 
 
-@router.post("/", response_model=BancoResponse)
+@router.post("", response_model=BancoResponse)
 async def criar_banco(
     body: BancoCreate,
     db: AsyncSession = Depends(get_db),

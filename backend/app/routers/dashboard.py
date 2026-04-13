@@ -10,7 +10,7 @@ from app.models.solicitacao import Solicitacao
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 async def dashboard(
     db: AsyncSession = Depends(get_db),
     _user=Depends(require_cargo(["Master", "Mestre"])),

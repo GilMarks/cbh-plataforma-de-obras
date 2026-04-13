@@ -11,7 +11,7 @@ router = APIRouter()
 LEITORES = ["Master", "Mestre", "Encarregado", "Financeiro", "Compras", "RH"]
 
 
-@router.get("/", response_model=list[UsuarioResponse])
+@router.get("", response_model=list[UsuarioResponse])
 async def listar_usuarios(
     ativo: int | None = None,
     db: AsyncSession = Depends(get_db),
@@ -36,7 +36,7 @@ async def buscar_usuario(
     return user
 
 
-@router.post("/", response_model=UsuarioResponse)
+@router.post("", response_model=UsuarioResponse)
 async def criar_usuario(
     body: UsuarioCreate,
     db: AsyncSession = Depends(get_db),

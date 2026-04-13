@@ -14,7 +14,7 @@ router = APIRouter()
 CARGOS = ["Master", "Mestre", "Encarregado"]
 
 
-@router.get("/", response_model=list[MontagemResponse])
+@router.get("", response_model=list[MontagemResponse])
 async def listar_montagens(
     obra_id: int | None = None,
     carregamento_id: int | None = None,
@@ -50,7 +50,7 @@ async def carregamentos_disponiveis(
     ]
 
 
-@router.post("/", response_model=list[MontagemResponse])
+@router.post("", response_model=list[MontagemResponse])
 async def registrar_montagem(
     body: MontagemCreate,
     db: AsyncSession = Depends(get_db),

@@ -30,6 +30,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
     )
@@ -39,6 +41,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     expire = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
@@ -57,11 +61,12 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        user_id: int = payload.get("sub")
+        raw_sub = payload.get("sub")
         token_type: str = payload.get("type")
-        if user_id is None or token_type != "access":
+        if raw_sub is None or token_type != "access":
             raise credentials_exception
-    except JWTError:
+        user_id: int = int(raw_sub)
+    except (JWTError, TypeError, ValueError):
         raise credentials_exception
 
     result = await db.execute(select(Usuario).where(Usuario.id == user_id))

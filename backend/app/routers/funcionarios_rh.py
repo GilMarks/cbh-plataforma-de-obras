@@ -13,7 +13,7 @@ router = APIRouter()
 CARGOS = ["Master", "RH"]
 
 
-@router.get("/", response_model=list[FuncionarioResponse])
+@router.get("", response_model=list[FuncionarioResponse])
 async def listar_funcionarios(
     busca: str | None = None,
     db: AsyncSession = Depends(get_db),
@@ -46,7 +46,7 @@ async def buscar_funcionario(
     return f
 
 
-@router.post("/", response_model=FuncionarioResponse)
+@router.post("", response_model=FuncionarioResponse)
 async def criar_funcionario(
     body: FuncionarioCreate,
     db: AsyncSession = Depends(get_db),

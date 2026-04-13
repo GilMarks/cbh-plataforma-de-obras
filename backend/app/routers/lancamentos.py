@@ -49,7 +49,7 @@ async def dashboard_financeiro(
     }
 
 
-@router.get("/", response_model=list[LancamentoResponse])
+@router.get("", response_model=list[LancamentoResponse])
 async def listar_lancamentos(
     tipo: str | None = None,
     status: str | None = None,
@@ -80,7 +80,7 @@ async def buscar_lancamento(
     return l
 
 
-@router.post("/", response_model=LancamentoResponse)
+@router.post("", response_model=LancamentoResponse)
 async def criar_lancamento(
     body: LancamentoCreate,
     db: AsyncSession = Depends(get_db),

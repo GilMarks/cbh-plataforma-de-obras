@@ -23,7 +23,7 @@ async def kpis(
     return {"totalEntradas": entradas, "totalSaidas": saidas, "totalMovimentacoes": len(movs)}
 
 
-@router.get("/", response_model=list[MovimentacaoResponse])
+@router.get("", response_model=list[MovimentacaoResponse])
 async def historico(
     insumo_id: int | None = None,
     tipo: str | None = None,

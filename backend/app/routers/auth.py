@@ -48,8 +48,8 @@ async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)
         payload = jwt.decode(body.refresh_token, settings.secret_key, algorithms=[settings.algorithm])
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Token tipo invalido")
-        user_id = payload.get("sub")
-    except JWTError:
+        user_id = int(payload.get("sub"))
+    except (JWTError, TypeError, ValueError):
         raise HTTPException(status_code=401, detail="Refresh token invalido")
 
     result = await db.execute(select(Usuario).where(Usuario.id == user_id, Usuario.ativo == 1))

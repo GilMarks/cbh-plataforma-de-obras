@@ -17,7 +17,7 @@ CARGOS_ESCRITA = ["Master", "Compras"]
 CARGOS_MOV = ["Master", "Compras", "Mestre"]
 
 
-@router.get("/", response_model=list[InsumoResponse])
+@router.get("", response_model=list[InsumoResponse])
 async def listar_insumos(
     db: AsyncSession = Depends(get_db),
     _user=Depends(require_cargo(CARGOS_LEITURA)),
@@ -26,7 +26,7 @@ async def listar_insumos(
     return result.scalars().all()
 
 
-@router.post("/", response_model=InsumoResponse)
+@router.post("", response_model=InsumoResponse)
 async def criar_insumo(
     body: InsumoCreate,
     db: AsyncSession = Depends(get_db),

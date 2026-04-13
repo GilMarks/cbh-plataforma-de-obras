@@ -19,7 +19,7 @@ def _calcular_sequencia(paineis: list) -> list:
     return list(range(len(paineis) - 1, -1, -1))
 
 
-@router.get("/", response_model=list[CarregamentoResponse])
+@router.get("", response_model=list[CarregamentoResponse])
 async def listar_carregamentos(
     obra_id: int | None = None,
     status: str | None = None,
@@ -73,7 +73,7 @@ async def buscar_carregamento(
     return c
 
 
-@router.post("/", response_model=CarregamentoResponse)
+@router.post("", response_model=CarregamentoResponse)
 async def criar_carregamento(
     body: CarregamentoCreate,
     db: AsyncSession = Depends(get_db),
