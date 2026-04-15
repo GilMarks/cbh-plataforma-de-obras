@@ -34,7 +34,7 @@ export default function PlanoCarregamentoResumo({
     if (layers.length === 0) {
       return (
         <div
-          className="rounded-xl border border-dashed border-border bg-white text-text-muted"
+          className="rounded-xl border border-dashed border-border bg-surface-container-lowest text-text-muted"
           style={{
             minHeight: compact ? '120px' : '150px',
             display: 'flex',
@@ -66,7 +66,7 @@ export default function PlanoCarregamentoResumo({
           {layers.map(layer => (
             <div
               key={`${tituloSecao}-${layer.camada}`}
-              className="rounded-xl border bg-white"
+              className="rounded-xl border bg-surface-container-lowest"
               style={{
                 borderColor: `${accent}33`,
                 padding: compact ? '12px' : '14px',
@@ -144,8 +144,9 @@ export default function PlanoCarregamentoResumo({
           </p>
         </div>
         <div
-          className="rounded-xl border border-amber-200 bg-amber-50 text-amber-900"
+          className="rounded-xl border bg-warning-bg text-warning-text"
           style={{
+            borderColor: 'var(--color-warning)',
             padding: compact ? '10px 12px' : '12px 14px',
             minWidth: compact ? '180px' : '220px',
           }}
@@ -161,7 +162,7 @@ export default function PlanoCarregamentoResumo({
 
       {semPaineis ? (
         <div
-          className="rounded-xl border border-dashed border-border bg-white text-text-muted"
+          className="rounded-xl border border-dashed border-border bg-surface-container-lowest text-text-muted"
           style={{
             padding: compact ? '24px 16px' : '36px 20px',
             textAlign: 'center',
@@ -183,7 +184,7 @@ export default function PlanoCarregamentoResumo({
 
           {!compact && (
             <div
-              className="rounded-2xl border border-border bg-white"
+              className="rounded-2xl border border-border bg-surface-container-lowest"
               style={{
                 alignSelf: 'stretch',
                 display: 'flex',
@@ -199,7 +200,7 @@ export default function PlanoCarregamentoResumo({
                   width: '58px',
                   height: '78px',
                   clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)',
-                  background: 'linear-gradient(180deg, #d9dde4 0%, #bcc3ce 100%)',
+                  background: 'linear-gradient(180deg, var(--color-border) 0%, var(--color-surface-container-high, #bcc3ce) 100%)',
                   border: '1px solid var(--color-border)',
                 }}
               />

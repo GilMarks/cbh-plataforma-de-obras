@@ -1,23 +1,14 @@
 /**
- * SimuladorCarregamento — Versão 5
+ * SimuladorCarregamento — v6
  *
- * Lógica baseada no HTML MVP feito pelo cliente (docs/MVP_FEITO_PELO_CLIENTE.html).
+ * Refatorado para usar:
+ * - distribuirOutsideIn() para distribuição nos dois lados do Munck
+ * - PlantaBaixaSVG como componente compartilhado (view top-down)
  *
- * ALGORITMO DO CLIENTE:
- * - Painéis são divididos em TOPO (índices pares: 1º, 3º...) e BASE (ímpares: 2º, 4º...)
- * - BASE é invertida para criar simetria borda→centro
- * - Painéis são CENTRADOS horizontalmente dentro da área útil
- * - Largura de cada painel ∝ comprimento real (escala: ~127px/m para 6m)
- * - Altura das fileiras: fixa entre 28-38px (cap do cliente: 14-34px)
- *
- * ESTRUTURA SVG (dimensões do cliente):
- * [CABINE]  [══════════════ CARROCERIA ══════════════════]
- *           [  ┌─ ─ ─ Área útil (amarela tracejada) ─ ─┐ ]
- *           [  │     ┌──── Painel 5 x 3m ────────────┐  │ ]
- *           [  │     │  Carregamento Munck            │  │ ]
- *           [  │     └────────────────────────────────┘  │ ]
- *           [  └─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘ ]
- *           [══════════════════════════════════════════════]
+ * Fluxo:
+ * 1. Usuário seleciona painéis 1-a-1 (click no estoque ou já pre-selecionados)
+ * 2. Reordena a sequência de montagem via DnD
+ * 3. Ao salvar, distribuirOutsideIn() aloca nos lados Esq/Dir automaticamente
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -39,319 +30,36 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { formatMeters, type PainelEstoqueCarregamento, criarPlanoZona } from '../../lib/carregamento';
+import {
+  formatMeters,
+  distribuirOutsideIn,
+  buildCamadasCarregamento,
+  type PainelEstoqueCarregamento,
+  MUNCK_MAX_COMP,
+  CARRETA_MAX_COMP,
+} from '../../lib/carregamento';
+import PlantaBaixaSVG from './PlantaBaixaSVG';
 import type { PainelCarregamento } from '../../lib/types';
-
-// ─── Dimensões físicas ────────────────────────────────────────────────────────
-const MUNCK_COMP_M   = 6;
-const CARRETA_COMP_M = 12;
-
-// ─── Escala (do cliente: 760px / 6m ≈ 127px/m) ───────────────────────────────
-const PX_PER_M_MUNCK   = 127;   // 6m  → 762px
-const PX_PER_M_CARRETA = 63;    // 12m → 756px
-
-// ─── Dimensões do SVG (proporcionais ao cliente) ──────────────────────────────
-// Cliente: cabine 160×300, carroceria 980×360, área útil 760×300
-// Usamos ~85% dessas dimensões para caber bem em telas menores
-const CABINE_W   = 130;
-const CABINE_H   = 250;
-const CABINE_GAP = 12;
-
-// Carroceria: margem lateral = 80px de cada lado além da área útil
-// Margem vertical = 30px de cada lado
-const CARROC_MARGIN_X = 80;
-const CARROC_MARGIN_Y = 30;
-
-// Área útil: margem interna de 20px horizontal, 20px vertical
-const AREA_MARGIN_X = 20;
-const AREA_MARGIN_Y = 20;
-
-// Altura das fileiras: fixo entre 28–38px (cliente: 14–34px, escalado)
-const ROW_H_MIN = 28;
-const ROW_H_MAX = 38;
-const ROW_GAP   = 6;
-
-const SVG_PAD = 14;
-
-function getVParams(v: 'Munck' | 'Carreta') {
-  const maxComp = v === 'Carreta' ? CARRETA_COMP_M : MUNCK_COMP_M;
-  const pxPerM  = v === 'Carreta' ? PX_PER_M_CARRETA : PX_PER_M_MUNCK;
-  const areaUtilW = maxComp * pxPerM;
-  return { maxComp, pxPerM, areaUtilW };
-}
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface PainelOrdenado extends PainelEstoqueCarregamento {
   ordem: number;
 }
 
-// ─── Paleta de cores por fileira ─────────────────────────────────────────────
+// ─── Paleta de cores por fileira (via CSS vars do design system) ─────────────
 const FILEIRA_CORES = [
-  { fill: '#dcfce7', stroke: '#16a34a', text: '#14532d' }, // verde
-  { fill: '#dbeafe', stroke: '#2563eb', text: '#1e3a8a' }, // azul
-  { fill: '#fef9c3', stroke: '#ca8a04', text: '#713f12' }, // amarelo
-  { fill: '#fce7f3', stroke: '#db2777', text: '#831843' }, // rosa
-  { fill: '#f3e8ff', stroke: '#9333ea', text: '#581c87' }, // roxo
-  { fill: '#ffedd5', stroke: '#ea580c', text: '#7c2d12' }, // laranja
-  { fill: '#cffafe', stroke: '#0891b2', text: '#164e63' }, // ciano
-  { fill: '#fee2e2', stroke: '#dc2626', text: '#7f1d1d' }, // vermelho
+  { fill: 'var(--color-success-bg)', stroke: 'var(--color-success)', text: 'var(--color-success-text)' },
+  { fill: 'var(--color-info-bg)', stroke: 'var(--color-info)', text: 'var(--color-info-text)' },
+  { fill: 'var(--color-warning-bg)', stroke: 'var(--color-warning)', text: 'var(--color-warning-text)' },
+  { fill: 'var(--color-primary-bg, var(--color-primary-fixed))', stroke: 'var(--color-primary)', text: 'var(--color-primary)' },
+  { fill: 'var(--color-danger-bg)', stroke: 'var(--color-danger)', text: 'var(--color-danger-text)' },
+  { fill: 'var(--color-surface-container)', stroke: 'var(--color-text-secondary)', text: 'var(--color-text-secondary)' },
+  { fill: 'var(--color-success-bg)', stroke: 'var(--color-info)', text: 'var(--color-info-text)' },
+  { fill: 'var(--color-danger-bg)', stroke: 'var(--color-warning)', text: 'var(--color-warning-text)' },
 ];
+
 function getFileiraCor(fi: number) {
   return FILEIRA_CORES[fi % FILEIRA_CORES.length];
-}
-
-// ─── Algoritmo greedy bin-packing por fileiras ────────────────────────────────
-// - Painéis são empilhados LADO A LADO horizontalmente
-// - Quando soma dos comp > maxComp, nova fileira começa
-// - 1ª fileira = borda (topo), última = centro (fundo)
-// - Cada fileira tem altura proporcional ao maior painel (alt) da fileira
-// - Painéis alinhados à esquerda da área útil
-
-interface Fileira {
-  paineis: PainelOrdenado[];
-  compTotal: number;
-  altMax: number;      // metros — define espessura visual da fileira
-  yPx: number;         // posição Y absoluta no SVG
-  hPx: number;         // altura em px da fileira
-}
-
-interface BlocoSvg {
-  painel: PainelOrdenado;
-  fileira: number;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-function calcFileiras(paineis: PainelOrdenado[], maxComp: number): Fileira[] {
-  const rows: Fileira[] = [];
-  let i = 0;
-  while (i < paineis.length) {
-    const grupo: PainelOrdenado[] = [];
-    let comp = 0;
-    while (i < paineis.length) {
-      const p = paineis[i];
-      const c = p.comp > 0 ? p.comp : 1;
-      if (grupo.length > 0 && comp + c > maxComp + 0.001) break;
-      grupo.push(p); comp += c; i++;
-    }
-    const altMax = Math.max(...grupo.map(p => p.alt > 0 ? p.alt : 2.3));
-    rows.push({ paineis: grupo, compTotal: comp, altMax, yPx: 0, hPx: 0 });
-  }
-  return rows;
-}
-
-function calcBlocos(
-  paineis: PainelOrdenado[],
-  maxComp: number,
-  pxPerM: number,
-  areaUtilW: number,
-  _areaUtilH: number,
-  origemX: number,   // X do lado esquerdo da área útil (onde painéis começam)
-  origemY: number,   // Y do topo da área útil
-): BlocoSvg[] {
-  if (paineis.length === 0) return [];
-
-  const fileiras = calcFileiras(paineis, maxComp);
-
-  // Calcula altura proporcional: 1 metro de alt = ROW_H_MIN px mínimo
-  // Escala: queremos que 3m de alt → ~38px, 2m → ~26px
-  const PX_PER_ALT = 13; // px por metro de altura do painel
-  const MIN_H = ROW_H_MIN;
-  const MAX_H = ROW_H_MAX;
-
-  // Acumula posição Y
-  let yAcc = origemY + AREA_MARGIN_Y;
-  for (const row of fileiras) {
-    row.hPx = Math.max(MIN_H, Math.min(MAX_H, row.altMax * PX_PER_ALT));
-    row.yPx = yAcc;
-    yAcc += row.hPx + ROW_GAP;
-  }
-
-  const blocos: BlocoSvg[] = [];
-  fileiras.forEach((row, fi) => {
-    let xCursor = origemX + AREA_MARGIN_X;
-    row.paineis.forEach((p, pi) => {
-      const pComp = p.comp > 0 ? p.comp : 1;
-      const w = pComp * pxPerM - (pi > 0 ? 2 : 0);
-      blocos.push({
-        painel: p,
-        fileira: fi,
-        x: xCursor + (pi > 0 ? 2 : 0),
-        y: row.yPx,
-        w: Math.max(w, 4),
-        h: row.hPx,
-      });
-      xCursor += pComp * pxPerM;
-    });
-  });
-
-  // Suprime warning de unused areaUtilW
-  void areaUtilW;
-
-  return blocos;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SVG PlantaBaixa — estrutura exata do cliente
-// ─────────────────────────────────────────────────────────────────────────────
-function PlantaBaixa({
-  paineis,
-  veiculo,
-}: {
-  paineis: PainelOrdenado[];
-  veiculo: 'Munck' | 'Carreta';
-}) {
-  const { maxComp, pxPerM, areaUtilW } = getVParams(veiculo);
-
-  // Calcula fileiras para determinar altura dinâmica da área útil
-  const fileiras = calcFileiras(paineis, maxComp);
-  const PX_PER_ALT = 13;
-  const conteudoH = fileiras.length === 0
-    ? ROW_H_MAX * 3  // altura mínima quando vazio
-    : fileiras.reduce((s, r) => s + Math.max(ROW_H_MIN, Math.min(ROW_H_MAX, r.altMax * PX_PER_ALT)) + ROW_GAP, 0) - ROW_GAP;
-
-  const areaUtilH = Math.max(conteudoH + AREA_MARGIN_Y * 2, 140);
-
-  // Carroceria: envolve área útil com margens
-  const carrocW = areaUtilW + CARROC_MARGIN_X * 2;
-  const carrocH = areaUtilH + CARROC_MARGIN_Y * 2;
-
-  const svgW = SVG_PAD + CABINE_W + CABINE_GAP + carrocW + SVG_PAD;
-  const svgH = SVG_PAD + Math.max(carrocH, CABINE_H) + SVG_PAD + 22;
-
-  const cabineX = SVG_PAD;
-  const cabineY = SVG_PAD + (Math.max(carrocH, CABINE_H) - CABINE_H) / 2;
-
-  const carrocX = SVG_PAD + CABINE_W + CABINE_GAP;
-  const carrocY = SVG_PAD + (Math.max(carrocH, CABINE_H) - carrocH) / 2;
-
-  const areaX = carrocX + CARROC_MARGIN_X;
-  const areaY = carrocY + CARROC_MARGIN_Y;
-
-  // Blocos dos painéis (alinhados à esquerda, lado a lado)
-  const blocos = calcBlocos(
-    paineis, maxComp, pxPerM, areaUtilW, areaUtilH,
-    areaX, areaY,
-  );
-
-  return (
-    <svg
-      width={svgW}
-      height={svgH}
-      viewBox={`0 0 ${svgW} ${svgH}`}
-      style={{ display: 'block', width: '100%', height: 'auto' }}
-      aria-label={`Planta baixa do carregamento — ${veiculo}`}
-    >
-      {/* ── Cabine (verde, fora da carroceria) ── */}
-      <rect
-        x={cabineX} y={cabineY}
-        width={CABINE_W} height={CABINE_H}
-        rx={8}
-        fill="#dcfce7" stroke="#166534" strokeWidth={2}
-      />
-      <text
-        x={cabineX + CABINE_W / 2}
-        y={cabineY + CABINE_H / 2}
-        textAnchor="middle" dominantBaseline="middle"
-        fontSize={15} fontWeight="700" fill="#166534"
-        fontFamily="Arial, sans-serif"
-      >
-        CABINE
-      </text>
-
-      {/* ── Carroceria (branca, borda cinza arredondada) ── */}
-      <rect
-        x={carrocX} y={carrocY}
-        width={carrocW} height={carrocH}
-        rx={10}
-        fill="#ffffff" stroke="#111827" strokeWidth={2}
-      />
-
-      {/* ── Área útil de carregamento (amarela tracejada) ── */}
-      <rect
-        x={areaX} y={areaY}
-        width={areaUtilW} height={areaUtilH}
-        rx={8}
-        fill="#fef3c7"
-        stroke="#d97706"
-        strokeWidth={2}
-        strokeDasharray="8 6"
-      />
-
-      {/* Label "Área útil de carregamento" */}
-      <text
-        x={areaX + areaUtilW / 2}
-        y={areaY - 10}
-        textAnchor="middle"
-        fontSize={12} fill="#92400e" fontWeight="600"
-        fontFamily="Arial, sans-serif"
-      >
-        Área útil de carregamento
-      </text>
-
-      {/* Label central do veículo (placeholder quando vazio) */}
-      {paineis.length === 0 && (
-        <text
-          x={areaX + areaUtilW / 2}
-          y={areaY + areaUtilH / 2}
-          textAnchor="middle" dominantBaseline="middle"
-          fontSize={14} fill="#92400e" fontWeight="500"
-          fontFamily="Arial, sans-serif"
-          opacity={0.35}
-        >
-          Adicione painéis para visualizar
-        </text>
-      )}
-
-      {/* ── Painéis ── */}
-      {blocos.map(({ painel, fileira, x, y, w, h }) => {
-        const dimLabel = `${painel.comp > 0 ? painel.comp : '?'} x ${painel.alt > 0 ? painel.alt : '?'}m`;
-        const showLabel = w > 50 && h >= ROW_H_MIN;
-        const nFileiras = [...new Set(blocos.map(b => b.fileira))].length;
-        const par = Math.min(fileira, nFileiras - 1 - fileira);
-        const cor = getFileiraCor(par);
-        return (
-          <g key={painel.itemId}>
-            <rect
-              x={x} y={y}
-              width={Math.max(w, 8)} height={h}
-              rx={4}
-              fill={cor.fill} stroke={cor.stroke} strokeWidth={2}
-            />
-            {showLabel && (
-              <text
-                x={x + w / 2}
-                y={y + h / 2}
-                textAnchor="middle" dominantBaseline="middle"
-                fontSize={Math.min(14, Math.max(10, w / 7))}
-                fontWeight="600" fill={cor.text}
-                fontFamily="Arial, sans-serif"
-              >
-                {dimLabel}
-              </text>
-            )}
-          </g>
-        );
-      })}
-
-      {/* ── Marcadores de metro (alinhados ao início da área útil) ── */}
-      {Array.from({ length: maxComp + 1 }, (_, i) => (
-        <text
-          key={`m${i}`}
-          x={areaX + AREA_MARGIN_X + i * pxPerM}
-          y={carrocY + carrocH + 15}
-          textAnchor="middle"
-          fontSize={9} fill="#64748b"
-          fontFamily="monospace"
-        >
-          {i}m
-        </text>
-      ))}
-
-    </svg>
-  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -362,13 +70,17 @@ function PainelCard({
   index,
   fileira,
   maxMetros,
+  highlighted,
   onRemover,
+  onHover,
 }: {
   painel: PainelOrdenado;
   index: number;
   fileira: number;
   maxMetros: number;
+  highlighted: boolean;
   onRemover: (id: string) => void;
+  onHover: (id: string | null) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: painel.itemId,
@@ -380,14 +92,23 @@ function PainelCard({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1, borderColor: cor.border, background: cor.bg }}
-      className="flex items-center gap-2 rounded-lg border px-3 py-2 transition-shadow hover:shadow-sm"
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+        borderColor: cor.border,
+        background: highlighted ? cor.border : cor.bg,
+        outline: highlighted ? `2px solid ${cor.border}` : undefined,
+      }}
+      className="flex items-center gap-2 rounded-lg border px-3 py-2 transition-all hover:shadow-sm"
+      onMouseEnter={() => onHover(painel.itemId)}
+      onMouseLeave={() => onHover(null)}
     >
       <button
         type="button"
         {...attributes}
         {...listeners}
-        className="flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded text-slate-300 hover:text-slate-500 active:cursor-grabbing"
+        className="flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded text-text-muted hover:text-text-secondary active:cursor-grabbing"
         style={{ touchAction: 'none' }}
         tabIndex={-1}
       >
@@ -401,12 +122,12 @@ function PainelCard({
         {index + 1}
       </div>
 
-      <span className="min-w-0 flex-1 font-mono text-xs font-bold tabular-nums text-slate-800">
+      <span className="min-w-0 flex-1 font-mono text-xs font-bold tabular-nums" style={{ color: highlighted ? 'white' : 'var(--color-text-primary)' }}>
         {painel.dimensao}
       </span>
 
       <div className="hidden w-12 shrink-0 sm:block">
-        <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface-container-high">
           <div
             className="h-full rounded-full"
             style={{ width: `${Math.min((painel.comp / maxMetros) * 100, 100)}%`, background: cor.border }}
@@ -417,7 +138,7 @@ function PainelCard({
       <button
         type="button"
         onClick={() => onRemover(painel.itemId)}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-text-muted transition-colors hover:bg-danger-bg hover:text-danger"
       >
         <Trash2 size={11} />
       </button>
@@ -441,61 +162,25 @@ function EstoqueCard({
     <div
       className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${
         excede
-          ? 'border-slate-100 bg-slate-50 opacity-40'
-          : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50'
+          ? 'border-border bg-surface-container opacity-40'
+          : 'border-border bg-surface-container-lowest hover:bg-primary-fixed hover:border-primary/30'
       }`}
     >
-      <span className="min-w-0 flex-1 font-mono text-xs font-bold tabular-nums text-slate-700">
+      <span className="min-w-0 flex-1 font-mono text-xs font-bold tabular-nums text-text-primary">
         {painel.dimensao}
       </span>
-      <span className="shrink-0 font-mono text-[10px] text-slate-400">
+      <span className="shrink-0 font-mono text-[10px] text-text-muted">
         {formatMeters(painel.comp)}
       </span>
       <button
         type="button"
         disabled={excede}
         onClick={() => onAdicionar(painel)}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-primary/30 bg-primary-fixed text-primary transition-colors hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         title={excede ? 'Painel excede o limite do veículo' : 'Adicionar'}
       >
         <Plus size={11} />
       </button>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Lista legenda abaixo do SVG
-// ─────────────────────────────────────────────────────────────────────────────
-function ListaLegenda({ paineis }: { paineis: PainelOrdenado[] }) {
-  if (paineis.length === 0) return null;
-  return (
-    <div className="mt-4 border-t border-slate-100 pt-4">
-      <p className="mb-2 font-mono text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-        Detalhamento dos painéis
-      </p>
-      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-        {paineis.map((p, i) => {
-          return (
-            <div
-              key={p.itemId}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5"
-            >
-              <span
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded font-mono text-[10px] font-extrabold text-white bg-slate-700"
-              >
-                {i + 1}
-              </span>
-              <span className="min-w-0 flex-1 font-mono text-[11px] font-bold text-slate-700 truncate">
-                {p.dimensao}
-              </span>
-              <span className="shrink-0 font-mono text-[10px] text-slate-400">
-                {formatMeters(p.comp)} × {formatMeters(p.alt || 0)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -520,16 +205,16 @@ export default function SimuladorCarregamento({
   onConfirm,
   onCancel,
 }: SimuladorCarregamentoProps) {
-  const [sequencia, setSequencia]       = useState<PainelOrdenado[]>([]);
-  const [estoque, setEstoque]           = useState<PainelEstoqueCarregamento[]>(() =>
+  const [sequencia, setSequencia]         = useState<PainelOrdenado[]>([]);
+  const [estoque, setEstoque]             = useState<PainelEstoqueCarregamento[]>(() =>
     [...availablePanels].sort((a, b) => b.comp - a.comp || b.alt - a.alt),
   );
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [activeDragId, setActiveDragId]   = useState<string | null>(null);
+  const [hoveredId, setHoveredId]         = useState<string | null>(null);
   const resetRef = useRef<string | null>(null);
 
-  const { maxComp: maxMetros } = getVParams(vehicle);
+  const maxMetros = vehicle === 'Carreta' ? CARRETA_MAX_COMP : MUNCK_MAX_COMP;
 
-  // Calculado cedo para usar em handleAdicionar
   const totalMetros = sequencia.reduce((acc, p) => acc + (p.comp || 0), 0);
 
   useEffect(() => {
@@ -546,18 +231,25 @@ export default function SimuladorCarregamento({
 
   const sequenciaOrdenada: PainelOrdenado[] = sequencia.map((p, i) => ({ ...p, ordem: i + 1 }));
 
-  // Mapa itemId → índice de "par" de descarga
-  // Par = Math.min(fi, total-1-fi): fileira 0 e última = par 0, fileira 1 e penúltima = par 1, etc.
-  const fileiraMap = useMemo<Record<string, number>>(() => {
-    const fileiras = calcFileiras(sequenciaOrdenada, maxMetros);
-    const n = fileiras.length;
+  // Mapa itemId → camada (índice 0-based) baseado em bin-packing, para colorir os cards
+  const fileiraMapSimple = useMemo<Record<string, number>>(() => {
     const map: Record<string, number> = {};
-    fileiras.forEach((row, fi) => {
-      const par = Math.min(fi, n - 1 - fi);
-      row.paineis.forEach(p => { map[p.itemId] = par; });
-    });
+    let camadaIdx = 0;
+    let compAcc = 0;
+    for (const p of sequenciaOrdenada) {
+      const c = p.comp || 1;
+      if (compAcc + c > maxMetros && compAcc > 0) { camadaIdx++; compAcc = 0; }
+      map[p.itemId] = camadaIdx;
+      compAcc += c;
+    }
     return map;
   }, [sequenciaOrdenada, maxMetros]);
+
+  // Plano calculado em tempo real para o SVG (distribuirOutsideIn)
+  const planoPreview = useMemo<PainelCarregamento[]>(() => {
+    if (sequenciaOrdenada.length === 0) return [];
+    return distribuirOutsideIn(sequenciaOrdenada, vehicle, maxMetros);
+  }, [sequenciaOrdenada, vehicle, maxMetros]);
 
   const handleDragStart = (e: DragStartEvent) => setActiveDragId(e.active.id as string);
   const handleDragEnd   = (e: DragEndEvent) => {
@@ -572,7 +264,6 @@ export default function SimuladorCarregamento({
   };
 
   const handleAdicionar = (painel: PainelEstoqueCarregamento) => {
-    // Bloqueia apenas se o painel individualmente não cabe numa fileira
     if ((painel.comp || 0) > maxMetros) return;
     setEstoque(prev => prev.filter(p => p.itemId !== painel.itemId));
     setSequencia(prev => [...prev, { ...painel, ordem: prev.length + 1 }]);
@@ -594,40 +285,62 @@ export default function SimuladorCarregamento({
   };
 
   const handleSalvar = () => {
-    const zona = vehicle === 'Carreta' ? ('Prancha' as const) : ('Esquerdo' as const);
-    onConfirm(criarPlanoZona(zona, sequenciaOrdenada, maxMetros));
+    onConfirm(distribuirOutsideIn(sequenciaOrdenada, vehicle, maxMetros));
   };
 
   const activeDragPanel = activeDragId ? sequencia.find(p => p.itemId === activeDragId) : null;
+
+  // Alerta de fileira com baixa ocupação
+  const temFileiraSub40 = useMemo(() => {
+    if (sequenciaOrdenada.length <= 1) return false;
+    const camadasBrutas: { comp: number }[] = sequenciaOrdenada.map(p => ({ comp: p.comp || 1 }));
+    const camadas = buildCamadasCarregamento(camadasBrutas, maxMetros);
+    return camadas.length > 1 && camadas.some(c => c.comprimentoTotal < maxMetros * 0.4);
+  }, [sequenciaOrdenada, maxMetros]);
+
+  // Barra de ocupação da última camada
+  const barraOcupacao = useMemo(() => {
+    const camadasBrutas: { comp: number }[] = sequenciaOrdenada.map(p => ({ comp: p.comp || 1 }));
+    const camadas = buildCamadasCarregamento(camadasBrutas, maxMetros);
+    const ultima = camadas[camadas.length - 1];
+    return {
+      ocupacao: ultima?.comprimentoTotal ?? 0,
+      nCamadas: camadas.length,
+    };
+  }, [sequenciaOrdenada, maxMetros]);
 
   return (
     <div className="flex flex-col gap-5">
 
       {/* ── Cabeçalho ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
         <div>
-          <p className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
             Simulador de carregamento
           </p>
-          <h3 className="mt-1 text-base font-extrabold text-slate-900">
+          <h3 className="mt-1 text-base font-extrabold text-text-primary">
             Sequência de montagem — {vehicle}
           </h3>
-          <p className="mt-0.5 font-mono text-[11px] text-slate-400">
-            Arraste para reordenar a sequência de montagem.
+          <p className="mt-0.5 text-xs text-text-muted">
+            {vehicle === 'Munck'
+              ? 'Distribuição automática Esq/Dir (fora → dentro). Arraste para reordenar.'
+              : 'Prancha única, frente para trás. Arraste para reordenar.'}
           </p>
         </div>
 
-        <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 gap-1">
+        <div className="inline-flex shrink-0 rounded-xl border border-border bg-surface-container-lowest p-1 gap-1">
           {(['Munck', 'Carreta'] as const).map(v => (
             <button
               key={v}
               type="button"
               onClick={() => handleVehicleChange(v)}
-              className={`rounded-md px-4 py-1.5 font-mono text-xs font-bold transition-all ${
-                vehicle === v ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+                vehicle === v
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-text-secondary hover:bg-surface-container-low hover:text-text-primary'
               }`}
             >
-              {v === 'Munck' ? `Munck · ${MUNCK_COMP_M}m` : `Carreta · ${CARRETA_COMP_M}m`}
+              {v === 'Munck' ? `Munck · ${MUNCK_MAX_COMP}m` : `Carreta · ${CARRETA_MAX_COMP}m`}
             </button>
           ))}
         </div>
@@ -640,55 +353,53 @@ export default function SimuladorCarregamento({
         <div className="flex flex-col gap-4">
 
           {/* Sequência */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div>
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <p className="font-mono text-xs font-extrabold text-slate-700">Sequência de montagem</p>
-                <p className="mt-0.5 font-mono text-[10px] text-slate-400">
+                <p className="text-sm font-semibold text-text-primary">Sequência de montagem</p>
+                <p className="mt-0.5 font-mono text-[10px] text-text-muted">
                   {sequencia.length} painel(s) · {totalMetros.toFixed(1)}m
                 </p>
               </div>
-              <span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-slate-900 px-2 font-mono text-[11px] font-extrabold text-white">
+              <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary px-1.5 font-mono text-[10px] font-extrabold text-white">
                 {sequencia.length}
               </span>
             </div>
 
-            {/* Barra de ocupação da fileira atual */}
+            {/* Barra de ocupação da camada atual */}
             {sequencia.length > 0 && (() => {
-              const fs = calcFileiras(sequenciaOrdenada, maxMetros);
-              const ultimaFileira = fs[fs.length - 1];
-              const ocupacao = ultimaFileira ? ultimaFileira.compTotal : 0;
+              const { ocupacao, nCamadas } = barraOcupacao;
               const pct = (ocupacao / maxMetros) * 100;
               return (
                 <div className="mb-3">
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-slate-400">
-                      Fileira atual ({fs.length}ª)
+                    <span className="font-mono text-[10px] text-text-muted">
+                      Camada atual ({nCamadas}ª)
                     </span>
-                    <span className="font-mono text-[10px] font-bold text-slate-600">
+                    <span className="font-mono text-[10px] font-bold text-text-secondary">
                       {ocupacao.toFixed(1)}m / {maxMetros}m
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-surface-container-high">
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
                         width: `${Math.min(pct, 100)}%`,
-                        background: pct >= 100 ? '#16a34a' : pct >= 60 ? '#2563eb' : '#f59e0b',
+                        background: pct >= 100 ? 'var(--color-success)' : pct >= 60 ? 'var(--color-primary)' : 'var(--color-warning)',
                       }}
                     />
                   </div>
-                  <p className="mt-0.5 font-mono text-[9px] text-slate-400">
-                    {fs.length} fileira(s) · {sequencia.length} painel(s) · {totalMetros.toFixed(1)}m total
+                  <p className="mt-0.5 font-mono text-[9px] text-text-muted">
+                    {nCamadas} camada(s) · {sequencia.length} painel(s) · {totalMetros.toFixed(1)}m total
                   </p>
                 </div>
               );
             })()}
 
             {sequencia.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 py-7 text-center">
-                <p className="font-mono text-xs font-bold text-slate-400">Nenhum painel</p>
-                <p className="mt-0.5 font-mono text-[10px] text-slate-300">Selecione painéis abaixo</p>
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface-container-low py-7 text-center">
+                <p className="font-mono text-xs font-bold text-text-muted">Nenhum painel</p>
+                <p className="mt-0.5 font-mono text-[10px] text-text-muted opacity-60">Selecione painéis abaixo</p>
               </div>
             ) : (
               <DndContext
@@ -704,9 +415,11 @@ export default function SimuladorCarregamento({
                         key={painel.itemId}
                         painel={painel}
                         index={index}
-                        fileira={fileiraMap[painel.itemId] ?? 0}
+                        fileira={fileiraMapSimple[painel.itemId] ?? 0}
                         maxMetros={maxMetros}
+                        highlighted={hoveredId === painel.itemId}
                         onRemover={handleRemover}
+                        onHover={setHoveredId}
                       />
                     ))}
                   </div>
@@ -714,9 +427,9 @@ export default function SimuladorCarregamento({
 
                 <DragOverlay dropAnimation={null}>
                   {activeDragPanel ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-blue-400 bg-white px-3 py-2 shadow-xl ring-2 ring-blue-200">
-                      <GripVertical size={12} className="text-slate-400" />
-                      <span className="font-mono text-xs font-extrabold text-slate-900">
+                    <div className="flex items-center gap-2 rounded-lg border border-primary bg-surface-container-lowest px-3 py-2 shadow-xl ring-2 ring-primary/20">
+                      <GripVertical size={12} className="text-text-muted" />
+                      <span className="font-mono text-xs font-extrabold text-text-primary">
                         {activeDragPanel.dimensao}
                       </span>
                     </div>
@@ -725,34 +438,29 @@ export default function SimuladorCarregamento({
               </DndContext>
             )}
 
-            {sequencia.length > 1 && (() => {
-              // Avisa se alguma fileira ficou com menos de 40% de ocupação
-              const fs = calcFileiras(sequenciaOrdenada, maxMetros);
-              const temFolga = fs.some(f => f.compTotal < maxMetros * 0.4 && fs.length > 1);
-              return temFolga ? (
-                <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-                  <AlertCircle size={12} className="mt-0.5 shrink-0 text-amber-500" />
-                  <p className="font-mono text-[10px] text-amber-700">
-                    Fileira com menos de 40% de ocupação. Reordene para otimizar o espaço.
-                  </p>
-                </div>
-              ) : null;
-            })()}
+            {temFileiraSub40 && (
+              <div className="mt-3 flex items-start gap-2 rounded-lg border bg-warning-bg px-3 py-2" style={{ borderColor: 'var(--color-warning)' }}>
+                <AlertCircle size={12} className="mt-0.5 shrink-0 text-warning-text" />
+                <p className="font-mono text-[10px] text-warning-text">
+                  Camada com menos de 40% de ocupação. Reordene para otimizar o espaço.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Estoque */}
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div>
             <div className="mb-3">
-              <p className="font-mono text-xs font-extrabold text-slate-700">Painéis disponíveis</p>
-              <p className="mt-0.5 font-mono text-[10px] text-slate-400">
+              <p className="text-sm font-semibold text-text-primary">Painéis disponíveis</p>
+              <p className="mt-0.5 font-mono text-[10px] text-text-muted">
                 {estoque.length} livre(s) para esta obra
               </p>
             </div>
 
             {estoque.length === 0 ? (
-              <div className="flex items-center gap-2 rounded-lg border border-dashed border-emerald-200 bg-emerald-50 px-3 py-2.5">
-                <CheckCircle2 size={12} className="shrink-0 text-emerald-500" />
-                <span className="font-mono text-[10px] font-bold text-emerald-700">
+              <div className="flex items-center gap-2 rounded-lg border border-dashed bg-success-bg px-3 py-2.5" style={{ borderColor: 'var(--color-success)' }}>
+                <CheckCircle2 size={12} className="shrink-0 text-success" />
+                <span className="font-mono text-[10px] font-bold text-success-text">
                   Todos os painéis adicionados
                 </span>
               </div>
@@ -772,38 +480,40 @@ export default function SimuladorCarregamento({
         </div>
 
         {/* Coluna direita: visualização */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-border bg-surface-container-lowest p-5">
           <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <p className="font-mono text-xs font-extrabold text-slate-700">
+              <p className="font-mono text-xs font-extrabold text-text-primary">
                 Planta baixa do carregamento
               </p>
-              <p className="mt-0.5 font-mono text-[10px] text-slate-400">
-                Vista top-down · proporção real
+              <p className="mt-0.5 font-mono text-[10px] text-text-muted">
+                Vista top-down · distribuição {vehicle === 'Munck' ? 'Esq/Dir (fora→dentro)' : 'prancha frente→trás'}
               </p>
             </div>
             {sequencia.length > 0 && (
-              <span className="font-mono text-[10px] font-bold text-slate-500">
+              <span className="font-mono text-[10px] font-bold text-text-muted">
                 {sequencia.length} painel(s) · {totalMetros.toFixed(1)}m
               </span>
             )}
           </div>
 
-          <div className="overflow-x-auto rounded-lg bg-slate-50 p-3">
-            <PlantaBaixa paineis={sequenciaOrdenada} veiculo={vehicle} />
+          <div className="overflow-x-auto rounded-lg bg-surface-container-low p-3">
+            <PlantaBaixaSVG
+              paineis={planoPreview}
+              veiculo={vehicle}
+              highlightId={hoveredId ?? undefined}
+            />
           </div>
-
-          <ListaLegenda paineis={sequenciaOrdenada} />
         </div>
       </div>
 
       {/* ── Rodapé ── */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-container-lowest px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+          <p className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-text-muted">
             Confirmar plano
           </p>
-          <p className="mt-1 font-mono text-xs text-slate-600">
+          <p className="mt-1 font-mono text-xs text-text-secondary">
             {sequencia.length === 0
               ? 'Adicione pelo menos um painel para salvar.'
               : `${sequencia.length} painel(s) · ${totalMetros.toFixed(1)}m`}
@@ -813,7 +523,9 @@ export default function SimuladorCarregamento({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-mono text-xs font-bold text-slate-700 hover:bg-slate-50"
+            style={{ padding: '9px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text-secondary)', cursor: 'pointer', transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container-low)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
             Cancelar
           </button>
@@ -821,7 +533,7 @@ export default function SimuladorCarregamento({
             type="button"
             onClick={handleSalvar}
             disabled={sequencia.length === 0}
-            className="rounded-lg bg-slate-900 px-5 py-2 font-mono text-xs font-extrabold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40 hover:opacity-90"
+            style={{ padding: '9px 22px', borderRadius: '10px', fontSize: '13px', fontWeight: 800, background: 'var(--color-primary)', color: '#fff', cursor: sequencia.length === 0 ? 'not-allowed' : 'pointer', opacity: sequencia.length === 0 ? 0.4 : 1, border: 'none', transition: 'opacity 0.15s', letterSpacing: '-0.01em' }}
           >
             Salvar plano de carregamento
           </button>

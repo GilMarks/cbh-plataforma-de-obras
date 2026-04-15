@@ -1,63 +1,10 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Boxes, CheckSquare, Search, Truck, X } from 'lucide-react';
 import { carregamentos as carregamentosApi, montagens as montagensApi, obras as obrasApi } from '../../lib/api';
 import type { Carregamento, Obra } from '../../lib/types';
 
 const ACTIVE_STATUSES: Array<Carregamento['status']> = ['Carregado', 'Entregue'];
-
-function KPIBlock({
-  title,
-  value,
-  icon,
-}: {
-  title: string;
-  value: number;
-  icon: ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white px-6 py-4">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
-        <span className="text-slate-400">{icon}</span>
-      </div>
-      <div className="text-3xl font-semibold tabular-nums text-slate-900">{value}</div>
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: Carregamento['status'] }) {
-  const tone =
-    status === 'Entregue'
-      ? 'bg-emerald-50 text-emerald-700'
-      : 'bg-blue-50 text-blue-700';
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${tone}`}
-    >
-      {status === 'Carregado' ? 'Em Rota' : 'Montado'}
-    </span>
-  );
-}
-
-function EmptyTableState({ onCreate }: { onCreate: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center p-12 text-center">
-      <Truck size={48} className="mb-4 text-slate-300" />
-      <h3 className="mb-1 text-lg font-medium text-slate-900">Nenhum carregamento programado</h3>
-      <p className="mb-6 max-w-md text-sm leading-6 text-slate-500">
-        Voce ainda nao possui nenhum carregamento ou montagem registrada para os filtros selecionados.
-      </p>
-      <button
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-      >
-        + Novo Carregamento
-      </button>
-    </div>
-  );
-}
 
 export default function PaineisMontados() {
   const [carregamentos, setCarregamentos] = useState<Carregamento[]>([]);
@@ -130,51 +77,89 @@ export default function PaineisMontados() {
     }).catch(() => {});
   };
 
+  const kpis = [
+    { title: 'Total de Carregamentos', value: totalCarregamentos, icon: <Truck size={18} /> },
+    { title: 'Paineis Carregados', value: totalPaineisCarregados, icon: <Boxes size={18} /> },
+    { title: 'Em Rota', value: emRota, icon: <CheckSquare size={18} /> },
+  ];
+
   return (
-    <div className="bg-[#f8fafc]">
-      <p className="mb-2 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">Obra</p>
+    <div>
+      <p
+        className="text-text-muted uppercase tracking-widest font-extrabold"
+        style={{ fontSize: '11px', marginBottom: '8px' }}
+      >
+        Obra
+      </p>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="flex items-center gap-3">
             <Truck size={28} className="text-primary" />
-            <h1 className="text-[28px] font-extrabold leading-tight text-slate-900">Carregamento e Montagem</h1>
+            <h1 className="text-text-primary leading-tight" style={{ fontSize: '28px', fontWeight: 800 }}>
+              Carregamento e Montagem
+            </h1>
           </div>
-          <p className="mt-1.5 text-sm text-slate-600">
+          <p className="mt-1.5 text-text-secondary" style={{ fontSize: '14px' }}>
             Acompanhe os carregamentos enviados para obra e registre a montagem quando a carga chegar ao destino.
           </p>
         </div>
 
         <button
           onClick={openNovoCarregamento}
-          className="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          className="bg-primary text-white font-bold hover:bg-primary-dark transition-all inline-flex items-center gap-2"
+          style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '13px' }}
         >
           + Novo Carregamento
         </button>
       </div>
 
+      {/* KPI Cards */}
       <div className="mt-7 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <KPIBlock title="Total de Carregamentos" value={totalCarregamentos} icon={<Truck size={18} />} />
-        <KPIBlock title="Paineis Carregados" value={totalPaineisCarregados} icon={<Boxes size={18} />} />
-        <KPIBlock title="Em Rota" value={emRota} icon={<CheckSquare size={18} />} />
+        {kpis.map(kpi => (
+          <div
+            key={kpi.title}
+            className="bg-surface-container-lowest"
+            style={{ borderRadius: '12px', border: '1px solid var(--color-border)', padding: '16px 24px' }}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <span
+                className="text-text-muted uppercase tracking-widest font-extrabold"
+                style={{ fontSize: '11px' }}
+              >
+                {kpi.title}
+              </span>
+              <span className="text-text-muted">{kpi.icon}</span>
+            </div>
+            <div className="text-text-primary tabular-nums" style={{ fontSize: '30px', fontWeight: 700 }}>
+              {kpi.value}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="mb-6 mt-7 flex flex-wrap items-center gap-4">
+      {/* Search / Filter toolbar */}
+      <div
+        className="mt-7 mb-6 bg-surface-container-lowest flex flex-wrap items-center gap-4"
+        style={{ borderRadius: '12px', border: '1px solid var(--color-border)', padding: '20px 24px' }}
+      >
         <div className="relative min-w-[260px] flex-1 max-w-md">
-          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             value={search}
             onChange={event => setSearch(event.target.value)}
             placeholder="Buscar por obra, veiculo ou painel..."
-            className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-700"
+            className="w-full bg-surface-container-low text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
+            style={{ padding: '12px 20px 12px 48px', fontSize: '14px', borderRadius: '10px', border: '1px solid var(--color-border)' }}
           />
         </div>
 
         <select
           value={filterObra}
           onChange={event => setFilterObra(event.target.value)}
-          className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700"
+          className="bg-surface-container-low text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          style={{ padding: '12px 20px', fontSize: '14px', borderRadius: '10px', border: '1px solid var(--color-border)' }}
         >
           <option value="">Todas as Obras</option>
           {obras.map(obra => (
@@ -187,7 +172,8 @@ export default function PaineisMontados() {
         <select
           value={filterStatus}
           onChange={event => setFilterStatus(event.target.value)}
-          className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700"
+          className="bg-surface-container-low text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          style={{ padding: '12px 20px', fontSize: '14px', borderRadius: '10px', border: '1px solid var(--color-border)' }}
         >
           <option value="">Todos os Status</option>
           <option value="Carregado">Em Rota</option>
@@ -195,47 +181,71 @@ export default function PaineisMontados() {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      {/* Table */}
+      <div
+        className="bg-surface-container-lowest overflow-hidden"
+        style={{ borderRadius: '12px', border: '1px solid var(--color-border)' }}
+      >
         {filtered.length === 0 ? (
-          <EmptyTableState onCreate={openNovoCarregamento} />
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <Truck size={48} className="mb-4 text-text-muted" style={{ opacity: 0.4 }} />
+            <h3 className="mb-1 text-text-primary" style={{ fontSize: '16px', fontWeight: 700 }}>
+              Nenhum carregamento programado
+            </h3>
+            <p className="mb-6 max-w-md text-text-muted" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+              Voce ainda nao possui nenhum carregamento ou montagem registrada para os filtros selecionados.
+            </p>
+            <button
+              onClick={openNovoCarregamento}
+              className="bg-primary text-white font-bold hover:bg-primary-dark transition-all inline-flex items-center gap-2"
+              style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '13px' }}
+            >
+              + Novo Carregamento
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px]">
-              <thead className="border-b border-slate-200 bg-slate-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Obra
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Veiculo
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Paineis
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Data de Carga
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Acao
-                  </th>
+              <thead>
+                <tr className="bg-surface-container-low" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  {['Obra', 'Veiculo', 'Paineis', 'Data de Carga', 'Status', 'Acao'].map(col => (
+                    <th
+                      key={col}
+                      className="text-text-muted uppercase tracking-widest font-extrabold"
+                      style={{
+                        padding: '14px 24px',
+                        fontSize: '11px',
+                        textAlign: col === 'Acao' ? 'right' : 'left',
+                      }}
+                    >
+                      {col}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(carregamento => (
-                  <tr key={carregamento.id} className="border-b border-slate-200 last:border-b-0 hover:bg-slate-50">
-                    <td className="px-4 py-4 align-top">
-                      <div className="text-sm font-semibold text-slate-900">{carregamento.obraNome}</div>
-                      <div className="mt-1 text-xs text-slate-500">
+                  <tr
+                    key={carregamento.id}
+                    className="hover:bg-table-hover transition-colors"
+                    style={{ borderBottom: '1px solid var(--color-border)' }}
+                  >
+                    <td style={{ padding: '16px 24px', verticalAlign: 'top' }}>
+                      <div className="text-text-primary" style={{ fontSize: '14px', fontWeight: 600 }}>
+                        {carregamento.obraNome}
+                      </div>
+                      <div className="mt-1 text-text-muted" style={{ fontSize: '12px' }}>
                         Solicitado por {carregamento.solicitante || '-'} | Executado por {carregamento.executadoPor || '-'}
                       </div>
                     </td>
-                    <td className="px-4 py-4 align-top text-sm text-slate-700">{carregamento.veiculo}</td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="text-sm font-semibold tabular-nums text-slate-900">{carregamento.paineis.length}</div>
-                      <div className="mt-1 text-xs text-slate-500">
+                    <td className="text-text-primary" style={{ padding: '16px 24px', verticalAlign: 'top', fontSize: '14px' }}>
+                      {carregamento.veiculo}
+                    </td>
+                    <td style={{ padding: '16px 24px', verticalAlign: 'top' }}>
+                      <div className="text-text-primary tabular-nums" style={{ fontSize: '14px', fontWeight: 600 }}>
+                        {carregamento.paineis.length}
+                      </div>
+                      <div className="mt-1 text-text-muted" style={{ fontSize: '12px' }}>
                         {carregamento.paineis
                           .slice(0, 2)
                           .map(painel => painel.codigo ?? painel.dimensao)
@@ -243,22 +253,45 @@ export default function PaineisMontados() {
                         {carregamento.paineis.length > 2 ? ' ...' : ''}
                       </div>
                     </td>
-                    <td className="px-4 py-4 align-top text-sm tabular-nums text-slate-700">
+                    <td className="text-text-primary tabular-nums" style={{ padding: '16px 24px', verticalAlign: 'top', fontSize: '14px' }}>
                       {carregamento.dataExecucao || '-'}
                     </td>
-                    <td className="px-4 py-4 align-top">
-                      <StatusPill status={carregamento.status === 'Carregado' ? 'Carregado' : 'Entregue'} />
+                    <td style={{ padding: '16px 24px', verticalAlign: 'top' }}>
+                      {carregamento.status === 'Entregue' ? (
+                        <span
+                          className="bg-success-bg text-success-text inline-flex items-center font-extrabold uppercase tracking-widest"
+                          style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px' }}
+                        >
+                          Montado
+                        </span>
+                      ) : (
+                        <span
+                          className="bg-info-bg text-info-text inline-flex items-center font-extrabold uppercase tracking-widest"
+                          style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px' }}
+                        >
+                          Em Rota
+                        </span>
+                      )}
                     </td>
-                    <td className="px-4 py-4 align-top text-right">
+                    <td style={{ padding: '16px 24px', verticalAlign: 'top', textAlign: 'right' }}>
                       {carregamento.status === 'Carregado' ? (
                         <button
                           onClick={() => openMontagem(carregamento)}
-                          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                          className="bg-surface-container-lowest text-text-primary hover:bg-surface-container-low transition-colors inline-flex items-center gap-2"
+                          style={{
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--color-border)',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                          }}
                         >
                           <CheckSquare size={15} /> Registrar Montagem
                         </button>
                       ) : (
-                        <span className="text-sm font-medium text-slate-500">Montagem concluida</span>
+                        <span className="text-text-muted" style={{ fontSize: '13px', fontWeight: 500 }}>
+                          Montagem concluida
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -269,52 +302,74 @@ export default function PaineisMontados() {
         )}
       </div>
 
+      {/* Modal */}
       {modalOpen && selectedCarreg && (
         <div
-          className="fixed inset-0 flex items-center justify-center p-4"
-          style={{ zIndex: 'var(--z-modal)', background: 'rgba(15, 23, 42, 0.36)' }}
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 'var(--z-modal)', padding: '16px' }}
         >
-          <div className="w-full max-w-[520px] rounded-xl border border-slate-200 bg-white p-8">
+          <div
+            className="bg-surface-container-lowest w-full"
+            style={{ maxWidth: '520px', borderRadius: '16px', border: '1px solid var(--color-border)', padding: '32px' }}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-slate-900">Registrar Montagem</h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <h2 className="text-text-primary" style={{ fontSize: '18px', fontWeight: 700 }}>
+                  Registrar Montagem
+                </h2>
+                <p className="mt-1 text-text-secondary" style={{ fontSize: '14px' }}>
                   Confirme a equipe responsavel para finalizar a entrega desta carga na obra.
                 </p>
               </div>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 transition-colors hover:text-slate-700">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-text-muted hover:text-text-primary transition-colors"
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="text-sm font-semibold text-slate-900">{selectedCarreg.obraNome}</div>
-              <div className="mt-1 text-xs text-slate-500 tabular-nums">
+            <div
+              className="mt-6 bg-surface-container-low"
+              style={{ borderRadius: '10px', border: '1px solid var(--color-border)', padding: '12px 16px' }}
+            >
+              <div className="text-text-primary" style={{ fontSize: '14px', fontWeight: 600 }}>
+                {selectedCarreg.obraNome}
+              </div>
+              <div className="mt-1 text-text-muted tabular-nums" style={{ fontSize: '12px' }}>
                 {selectedCarreg.paineis.length} paineis | {selectedCarreg.veiculo} | {selectedCarreg.dataExecucao || '-'}
               </div>
             </div>
 
             <div className="mt-5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Equipe responsavel</label>
+              <label
+                className="text-text-muted uppercase tracking-widest font-extrabold"
+                style={{ fontSize: '11px' }}
+              >
+                Equipe responsavel
+              </label>
               <input
                 type="text"
                 value={equipe}
                 onChange={event => setEquipe(event.target.value)}
                 placeholder="Nome da equipe"
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700"
+                className="mt-2 w-full bg-surface-container-low text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all"
+                style={{ padding: '12px 20px', fontSize: '14px', borderRadius: '10px', border: '1px solid var(--color-border)' }}
               />
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                className="bg-surface-container-lowest text-text-primary hover:bg-surface-container-low transition-colors"
+                style={{ padding: '10px 20px', borderRadius: '10px', border: '1px solid var(--color-border)', fontSize: '13px', fontWeight: 600 }}
               >
                 Cancelar
               </button>
               <button
                 onClick={handleRegistrarMontagem}
-                className="rounded-lg border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                className="bg-primary text-white font-bold hover:bg-primary-dark transition-all"
+                style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
               >
                 Confirmar Montagem
               </button>

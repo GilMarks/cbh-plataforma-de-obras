@@ -268,6 +268,83 @@ export function criarPlanoLado(
   return criarPlanoZona(lado, paineis, maxComp);
 }
 
+export function distribuirOutsideIn(
+  paineis: PainelEstoqueCarregamento[],
+  modo: ModoCarregamento,
+  maxComp = MUNCK_MAX_COMP,
+): PainelCarregamento[] {
+  if (modo === 'Carreta') {
+    return criarPlanoZona('Prancha', paineis, CARRETA_MAX_COMP);
+  }
+
+  const resolvedMax = maxComp > 0 ? maxComp : MUNCK_MAX_COMP;
+
+  // Camadas para cada lado: array de arrays de painéis normalizados
+  const esquerdoCamadas: PainelBaseNormalizado[][] = [[]];
+  const direitoCamadas: PainelBaseNormalizado[][] = [[]];
+  let preferEsquerdo = true;
+
+  for (let i = 0; i < paineis.length; i++) {
+    const base = normalizarPainelEstoqueBase(paineis[i], i, resolvedMax);
+
+    const preferred = preferEsquerdo ? esquerdoCamadas : direitoCamadas;
+    const other = preferEsquerdo ? direitoCamadas : esquerdoCamadas;
+
+    const prefLast = preferred[preferred.length - 1];
+    const prefComp = prefLast.reduce((sum, p) => sum + p.comp, 0);
+
+    if (prefComp + base.comp <= resolvedMax) {
+      prefLast.push(base);
+    } else {
+      const otherLast = other[other.length - 1];
+      const otherComp = otherLast.reduce((sum, p) => sum + p.comp, 0);
+
+      if (otherComp + base.comp <= resolvedMax) {
+        otherLast.push(base);
+      } else {
+        // Nenhum lado cabe — nova camada no lado preferido
+        preferred.push([base]);
+      }
+    }
+
+    preferEsquerdo = !preferEsquerdo;
+  }
+
+  const totalCamadasEsq = esquerdoCamadas.filter(c => c.length > 0).length;
+  const totalCamadasDir = direitoCamadas.filter(c => c.length > 0).length;
+
+  const toResult = (
+    camadas: PainelBaseNormalizado[][],
+    lado: Extract<ZonaCarregamento, 'Esquerdo' | 'Direito'>,
+    totalCamadas: number,
+  ): PainelCarregamento[] =>
+    camadas
+      .filter(c => c.length > 0)
+      .flatMap((itens, camadaIdx) =>
+        itens.map((painel, posIdx) => ({
+          itemId: painel.itemId,
+          codigo: painel.codigo,
+          solicitacaoId: painel.solicitacaoId,
+          tipo: painel.tipo,
+          dimensao: painel.dimensao,
+          comp: painel.comp,
+          alt: painel.alt,
+          comprimentoMaximoCamada: resolvedMax,
+          posicaoCarregamento: painel.ordemZona,
+          lado,
+          camada: camadaIdx + 1,
+          posicaoNaCamada: posIdx + 1,
+          externo: camadaIdx === 0,
+          encostadoNoCavalete: camadaIdx === totalCamadas - 1,
+        })),
+      );
+
+  return [
+    ...toResult(esquerdoCamadas, 'Esquerdo', totalCamadasEsq),
+    ...toResult(direitoCamadas, 'Direito', totalCamadasDir),
+  ];
+}
+
 export function hidratarPlanoCarregamento(paineis: PainelCarregamento[]): PainelCarregamento[] {
   const modo = inferModoCarregamento(paineis);
   const maxComp = getMaxComprimentoCamada(paineis);

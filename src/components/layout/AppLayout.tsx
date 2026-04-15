@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import CommandMenu from '../shared/CommandMenu';
 import { getCurrentUser } from '../../lib/storage';
 import { getRefreshToken, ensureSession, hasAccessToken } from '../../lib/api';
 import { SidebarProvider } from '../../contexts/SidebarContext';
@@ -26,13 +27,14 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
+      <CommandMenu />
       <div className="h-screen w-full flex overflow-hidden bg-surface-container-low">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden bg-surface-container-lowest">
           <Topbar />
           <main
             className="flex-1 overflow-y-auto"
-            style={{ padding: '40px 48px' }}
+            style={{ padding: '32px 40px' }}
           >
             <div style={{ maxWidth: '1440px', margin: '0 auto' }}>
               <Outlet />

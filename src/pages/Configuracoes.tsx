@@ -2,9 +2,13 @@ import { useState } from 'react';
 import { Shield, Settings as SettingsIcon, Sun, Moon, Monitor } from 'lucide-react';
 import { getCurrentUser, setCurrentUser } from '../lib/storage';
 import { usuarios as usuariosApi } from '../lib/api';
+import { useTheme } from '../contexts/ThemeContext';
+import { useNotificacoes } from '../contexts/NotificacoesContext';
 
 export default function Configuracoes() {
   const user = getCurrentUser()!;
+  const { mode, setMode } = useTheme();
+  const { enabled: notificacoes, permission, setEnabled: setNotificacoes } = useNotificacoes();
   const [nome, setNome] = useState(user.login);
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -12,8 +16,6 @@ export default function Configuracoes() {
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [tema, setTema] = useState<'claro' | 'escuro' | 'sistema'>('claro');
-  const [notificacoes, setNotificacoes] = useState(true);
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
@@ -216,15 +218,15 @@ export default function Configuracoes() {
         </p>
         <div className="flex" style={{ gap: '12px', marginBottom: '28px' }}>
           {([
-            { key: 'claro' as const, icon: Sun, label: 'Claro' },
-            { key: 'escuro' as const, icon: Moon, label: 'Escuro' },
-            { key: 'sistema' as const, icon: Monitor, label: 'Sistema' },
+            { key: 'light' as const, icon: Sun, label: 'Claro' },
+            { key: 'dark' as const, icon: Moon, label: 'Escuro' },
+            { key: 'system' as const, icon: Monitor, label: 'Sistema' },
           ]).map(({ key, icon: Icon, label }) => (
             <button
               key={key}
-              onClick={() => setTema(key)}
+              onClick={() => setMode(key)}
               className={`flex flex-col items-center transition-all ${
-                tema === key
+                mode === key
                   ? 'bg-primary-fixed text-primary'
                   : 'bg-surface-container-lowest text-text-secondary hover:bg-surface-container-high/50'
               }`}
@@ -232,7 +234,7 @@ export default function Configuracoes() {
                 gap: '8px',
                 padding: '20px 32px',
                 borderRadius: '10px',
-                border: tema === key ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                border: mode === key ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
               }}
             >
               <Icon size={22} />
@@ -242,32 +244,39 @@ export default function Configuracoes() {
         </div>
 
         {/* Notifications Toggle */}
-        <div
-          className="flex items-center justify-between"
-          style={{ paddingTop: '24px', borderTop: '1px solid rgba(195, 198, 215, 0.15)' }}
-        >
-          <div>
-            <p className="font-medium text-text-primary" style={{ fontSize: '14px' }}>Notificacoes no Navegador</p>
-            <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>Receba alertas de novas ordens e prazos</p>
+        <div style={{ paddingTop: '24px', borderTop: '1px solid rgba(195, 198, 215, 0.15)' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-text-primary" style={{ fontSize: '14px' }}>Notificacoes no Navegador</p>
+              <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>Receba alertas de novas ordens e prazos</p>
+            </div>
+            <button
+              onClick={() => setNotificacoes(!notificacoes)}
+              disabled={permission === 'denied'}
+              className={`transition-colors ${notificacoes ? 'bg-primary' : 'bg-surface-container-high'}`}
+              style={{ width: '44px', height: '24px', borderRadius: '12px', position: 'relative', flexShrink: 0, opacity: permission === 'denied' ? 0.5 : 1, cursor: permission === 'denied' ? 'not-allowed' : 'pointer' }}
+            >
+              <div
+                className="bg-white"
+                style={{
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  position: 'absolute', top: '2px',
+                  left: notificacoes ? '22px' : '2px',
+                  transition: 'left 0.2s ease',
+                }}
+              />
+            </button>
           </div>
-          <button
-            onClick={() => setNotificacoes(!notificacoes)}
-            className={`transition-colors ${notificacoes ? 'bg-primary' : 'bg-surface-container-high'}`}
-            style={{ width: '44px', height: '24px', borderRadius: '12px', position: 'relative' }}
-          >
-            <div
-              className="bg-white"
-              style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                position: 'absolute',
-                top: '2px',
-                left: notificacoes ? '22px' : '2px',
-                transition: 'left 0.2s ease',
-              }}
-            />
-          </button>
+          {permission === 'denied' && (
+            <p className="text-warning" style={{ fontSize: '12px', marginTop: '8px' }}>
+              Permissão bloqueada pelo navegador. Acesse as configurações do navegador para permitir notificações deste site.
+            </p>
+          )}
+          {permission === 'default' && !notificacoes && (
+            <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '8px' }}>
+              Ao ativar, o navegador pedirá sua permissão.
+            </p>
+          )}
         </div>
       </div>
 

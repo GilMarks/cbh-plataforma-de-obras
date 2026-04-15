@@ -33,18 +33,6 @@ const fmt = {
   },
 };
 
-// ─── Design tokens ─────────────────────────────────────────────────────────────
-const C = {
-  border: '1px solid #e2e4e9',
-  borderLight: '1px solid #f2f4f6',
-  radius: { sm: '6px', md: '8px', lg: '10px' },
-  text: { primary: '#191c1e', secondary: '#434655', muted: '#737686' },
-  surface: { page: '#f7f9fb', card: '#ffffff', low: '#f2f4f6' },
-  rust: { text: '#b45309', border: '#fde68a', bg: '#fff7ed', hover: '#fef3c7' },
-  slate: { dark: '#0f172a', hover: '#1e293b' },
-  blue: { text: '#004ac6', bg: '#eff6ff', border: '#dbe1ff' },
-};
-
 // ─── Toast ─────────────────────────────────────────────────────────────────────
 function Toasts({ items }: { items: ToastItem[] }) {
   if (!items.length) return null;
@@ -53,12 +41,17 @@ function Toasts({ items }: { items: ToastItem[] }) {
       {items.map(t => (
         <div
           key={t.id}
+          className={
+            t.type === 'aprovado'
+              ? 'bg-success-bg text-success-text'
+              : 'bg-warning-bg text-warning-text'
+          }
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
-            padding: '12px 18px', borderRadius: C.radius.md,
-            border: t.type === 'aprovado' ? '1px solid #bbf7d0' : '1px solid #fde68a',
-            background: t.type === 'aprovado' ? '#f0fdf4' : '#fff7ed',
-            color: t.type === 'aprovado' ? '#166534' : '#92400e',
+            padding: '12px 18px', borderRadius: '8px',
+            border: t.type === 'aprovado'
+              ? '1px solid var(--color-success-bright)'
+              : '1px solid var(--color-warning-bright)',
             fontSize: 13, fontWeight: 600, minWidth: 280,
             animation: 'toastIn 0.2s ease',
           }}
@@ -84,37 +77,42 @@ function Sheet({ open, onClose, title, children }: {
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 100,
-          background: 'rgba(25,28,30,0.28)',
+          background: 'rgba(0,0,0,0.4)',
           opacity: open ? 1 : 0,
           pointerEvents: open ? 'auto' : 'none',
           transition: 'opacity 0.22s ease',
         }}
       />
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: 460, zIndex: 101,
-        background: '#fff',
-        borderLeft: C.border,
-        transform: open ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
-        display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
-      }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 24px', borderBottom: C.border,
-          position: 'sticky', top: 0, background: '#fff', zIndex: 1,
-        }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: C.text.primary }}>{title}</span>
+      <div
+        className="bg-surface-container-lowest"
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0,
+          width: 460, zIndex: 101,
+          borderLeft: '1px solid var(--color-border)',
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
+          display: 'flex', flexDirection: 'column',
+          overflowY: 'auto',
+        }}
+      >
+        <div
+          className="bg-surface-container-lowest"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '20px 24px', borderBottom: '1px solid var(--color-border)',
+            position: 'sticky', top: 0, zIndex: 1,
+          }}
+        >
+          <span className="text-text-primary" style={{ fontSize: 14, fontWeight: 700 }}>{title}</span>
           <button
             onClick={onClose}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 32, height: 32, borderRadius: C.radius.sm,
-              border: C.border, background: 'transparent', cursor: 'pointer',
+              width: 32, height: 32, borderRadius: '6px',
+              border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer',
             }}
           >
-            <X size={15} color={C.text.muted} />
+            <X size={15} className="text-text-muted" />
           </button>
         </div>
         <div style={{ padding: 24, flex: 1 }}>{children}</div>
@@ -126,15 +124,18 @@ function Sheet({ open, onClose, title, children }: {
 // ─── Empty state ───────────────────────────────────────────────────────────────
 function Empty({ label }: { label: string }) {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 14, padding: '64px 0',
-      border: C.border, borderRadius: C.radius.md, background: C.surface.page,
-    }}>
-      <CheckCircle size={52} color="#d1d5db" strokeWidth={1.25} />
+    <div
+      className="bg-surface"
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', gap: 14, padding: '64px 0',
+        border: '1px solid var(--color-border)', borderRadius: '8px',
+      }}
+    >
+      <CheckCircle size={52} className="text-text-muted" style={{ opacity: 0.4 }} strokeWidth={1.25} />
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontSize: 15, fontWeight: 700, color: C.text.primary }}>Tudo em dia!</p>
-        <p style={{ fontSize: 13, color: C.text.muted, marginTop: 4 }}>{label}</p>
+        <p className="text-text-primary" style={{ fontSize: 15, fontWeight: 700 }}>Tudo em dia!</p>
+        <p className="text-text-muted" style={{ fontSize: 13, marginTop: 4 }}>{label}</p>
       </div>
     </div>
   );
@@ -149,31 +150,25 @@ function DecisionBar({ onNegar, onAprovar, sm }: {
     <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
       <button
         onClick={e => { e.stopPropagation(); onNegar(); }}
+        className="bg-danger text-white hover:opacity-90 transition-all"
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          padding: pad, borderRadius: C.radius.sm,
+          padding: pad, borderRadius: '6px',
           fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          border: `1px solid ${C.rust.border}`,
-          color: C.rust.text, background: 'transparent',
-          transition: 'background 0.15s',
+          border: 'none',
         }}
-        onMouseEnter={e => (e.currentTarget.style.background = C.rust.hover)}
-        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       >
         <X size={13} /> Negar
       </button>
       <button
         onClick={e => { e.stopPropagation(); onAprovar(); }}
+        className="bg-primary text-white hover:bg-primary-dark transition-all"
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          padding: pad, borderRadius: C.radius.sm,
+          padding: pad, borderRadius: '6px',
           fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          border: `1px solid ${C.slate.dark}`,
-          color: '#fff', background: C.slate.dark,
-          transition: 'background 0.15s',
+          border: 'none',
         }}
-        onMouseEnter={e => (e.currentTarget.style.background = C.slate.hover)}
-        onMouseLeave={e => (e.currentTarget.style.background = C.slate.dark)}
       >
         <Check size={13} /> Aprovar
       </button>
@@ -181,15 +176,18 @@ function DecisionBar({ onNegar, onAprovar, sm }: {
   );
 }
 
-// ─── Células de tabela ─────────────────────────────────────────────────────────
+// ─── Celulas de tabela ─────────────────────────────────────────────────────────
 function Th({ children }: { children: string }) {
   return (
-    <th style={{
-      padding: '10px 16px', textAlign: 'left',
-      fontSize: 10, fontWeight: 700,
-      textTransform: 'uppercase', letterSpacing: '0.08em',
-      color: C.text.muted, whiteSpace: 'nowrap', background: C.surface.page,
-    }}>
+    <th
+      className="text-text-muted bg-surface-container-low"
+      style={{
+        padding: '14px 24px', textAlign: 'left',
+        fontSize: 11, fontWeight: 800,
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+        whiteSpace: 'nowrap',
+      }}
+    >
       {children}
     </th>
   );
@@ -199,27 +197,31 @@ function Td({ children, mono, bold, muted }: {
   children: React.ReactNode; mono?: boolean; bold?: boolean; muted?: boolean;
 }) {
   return (
-    <td style={{
-      padding: '13px 16px', fontSize: 13,
-      color: muted ? C.text.muted : C.text.primary,
-      fontWeight: bold ? 700 : 400,
-      fontVariantNumeric: mono ? 'tabular-nums' : undefined,
-      verticalAlign: 'middle',
-    }}>
+    <td
+      className={muted ? 'text-text-muted' : 'text-text-primary'}
+      style={{
+        padding: '16px 24px', fontSize: 13,
+        fontWeight: bold ? 700 : 400,
+        fontVariantNumeric: mono ? 'tabular-nums' : undefined,
+        verticalAlign: 'middle',
+      }}
+    >
       {children}
     </td>
   );
 }
 
-// ─── Tag de característica técnica ─────────────────────────────────────────────
+// ─── Tag de caracteristica tecnica ─────────────────────────────────────────────
 function TechTag({ label }: { label: string }) {
   return (
-    <span style={{
-      padding: '2px 8px', borderRadius: 4,
-      fontSize: 10, fontWeight: 700,
-      background: '#e0e7ff', color: '#3730a3',
-      border: '1px solid #c7d2fe',
-    }}>
+    <span
+      className="bg-info-bg text-info-text"
+      style={{
+        padding: '2px 8px', borderRadius: 4,
+        fontSize: 10, fontWeight: 700,
+        border: '1px solid var(--color-primary-fixed-dim)',
+      }}
+    >
       {label}
     </span>
   );
@@ -240,17 +242,25 @@ function AbaCompras({
   if (!items.length) return <Empty label="Nenhuma autorização de compra pendente." />;
 
   const prioridadeColor = (p: string) =>
-    p === 'Alta' ? { bg: '#fee2e2', text: '#991b1b', border: '#fecaca' }
-    : p === 'Media' ? { bg: '#fef3c7', text: '#92400e', border: '#fde68a' }
-    : { bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' };
+    p === 'Alta' ? 'bg-danger-bg text-danger-text'
+    : p === 'Media' ? 'bg-warning-bg text-warning-text'
+    : 'bg-info-bg text-info-text';
+
+  const prioridadeBorder = (p: string) =>
+    p === 'Alta' ? '1px solid var(--color-danger-bright)'
+    : p === 'Media' ? '1px solid var(--color-warning-bright)'
+    : '1px solid var(--color-primary-fixed-dim)';
 
   return (
     <>
-      <div style={{ border: C.border, borderRadius: C.radius.md, overflow: 'hidden' }}>
+      <div
+        className="bg-surface-container-lowest overflow-hidden"
+        style={{ border: '1px solid var(--color-border)', borderRadius: '12px' }}
+      >
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: C.border }}>
-              <Th>Data</Th><Th>Solicitante</Th><Th>Obra</Th><Th>Material</Th><Th>Valor Total</Th><Th>Ações</Th>
+            <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <Th>Data</Th><Th>Solicitante</Th><Th>Obra</Th><Th>Material</Th><Th>Valor Total</Th><Th>Acoes</Th>
             </tr>
           </thead>
           <tbody>
@@ -258,23 +268,22 @@ function AbaCompras({
               <tr
                 key={s.id}
                 onClick={() => setSheet(s)}
+                className="hover:bg-table-hover transition-colors cursor-pointer"
                 style={{
-                  borderBottom: C.borderLight, cursor: 'pointer',
+                  borderBottom: '1px solid var(--color-border)',
                   transition: 'opacity 0.3s ease, transform 0.3s ease',
                   opacity: dismissing.has(s.id) ? 0 : 1,
                   transform: dismissing.has(s.id) ? 'translateX(16px)' : 'none',
                 }}
-                onMouseEnter={e => { if (!dismissing.has(s.id)) e.currentTarget.style.background = '#f8fafc'; }}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <Td muted>{fmt.date(s.data)}</Td>
                 <Td>{s.solicitante}</Td>
                 <Td bold>{s.obraNome}</Td>
                 <Td>{s.item}</Td>
-                <td style={{ padding: '13px 16px', fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontSize: 13, verticalAlign: 'middle' }}>
+                <td className="text-text-primary" style={{ padding: '16px 24px', fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontSize: 13, verticalAlign: 'middle' }}>
                   {fmt.currency(s.valor)}
                 </td>
-                <td style={{ padding: '10px 16px', verticalAlign: 'middle' }} onClick={e => e.stopPropagation()}>
+                <td style={{ padding: '10px 24px', verticalAlign: 'middle' }} onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <DecisionBar sm onNegar={() => onNegar(s.id)} onAprovar={() => onAprovar(s)} />
                     <button
@@ -282,11 +291,11 @@ function AbaCompras({
                       title="Ver detalhes"
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        width: 30, height: 30, borderRadius: C.radius.sm,
-                        border: C.border, background: 'transparent', cursor: 'pointer',
+                        width: 30, height: 30, borderRadius: '6px',
+                        border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer',
                       }}
                     >
-                      <ChevronRight size={14} color={C.text.muted} />
+                      <ChevronRight size={14} className="text-text-muted" />
                     </button>
                   </div>
                 </td>
@@ -297,19 +306,23 @@ function AbaCompras({
       </div>
 
       {/* Sheet de detalhes */}
-      <Sheet open={!!sheet} onClose={() => setSheet(null)} title="Detalhes da Solicitação">
+      <Sheet open={!!sheet} onClose={() => setSheet(null)} title="Detalhes da Solicitacao">
         {sheet && (() => {
-          const pc = prioridadeColor(sheet.prioridade);
+          const pcClass = prioridadeColor(sheet.prioridade);
+          const pcBorder = prioridadeBorder(sheet.prioridade);
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Cabeçalho */}
+              {/* Cabecalho */}
               <div>
-                <p style={{ fontSize: 20, fontWeight: 800, color: C.text.primary }}>{sheet.item}</p>
+                <p className="text-text-primary" style={{ fontSize: 20, fontWeight: 800 }}>{sheet.item}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                  <span style={{
-                    padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-                    background: pc.bg, color: pc.text, border: `1px solid ${pc.border}`,
-                  }}>
+                  <span
+                    className={pcClass}
+                    style={{
+                      padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                      border: pcBorder,
+                    }}
+                  >
                     Prioridade {sheet.prioridade}
                   </span>
                 </div>
@@ -325,57 +338,73 @@ function AbaCompras({
                   { icon: null, label: 'Fornecedor', value: sheet.fornecedor || '—' },
                   { icon: null, label: 'Qtd / Un.', value: `${sheet.quantidade} ${sheet.unidade}` },
                 ].map(({ icon, label, value }) => (
-                  <div key={label} style={{ padding: '10px 12px', borderRadius: C.radius.sm, border: C.border, background: C.surface.page }}>
+                  <div
+                    key={label}
+                    className="bg-surface"
+                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--color-border)' }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
-                      {icon && <span style={{ color: C.text.muted }}>{icon}</span>}
-                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: C.text.muted }}>{label}</p>
+                      {icon && <span className="text-text-muted">{icon}</span>}
+                      <p className="text-text-muted" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: C.text.primary }}>{value}</p>
+                    <p className="text-text-primary" style={{ fontSize: 13, fontWeight: 600 }}>{value}</p>
                   </div>
                 ))}
               </div>
 
               {/* Valor total em destaque */}
-              <div style={{ padding: '14px 16px', borderRadius: C.radius.md, border: C.border, background: C.surface.page }}>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: C.text.muted }}>Valor Total</p>
-                <p style={{ fontSize: 28, fontWeight: 800, color: C.text.primary, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+              <div
+                className="bg-surface"
+                style={{ padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}
+              >
+                <p className="text-text-muted" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Valor Total</p>
+                <p className="text-text-primary" style={{ fontSize: 28, fontWeight: 800, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
                   {fmt.currency(sheet.valor)}
                 </p>
               </div>
 
-              {/* Observações */}
+              {/* Observacoes */}
               {sheet.observacoes && (
-                <div style={{ padding: '12px 14px', borderRadius: C.radius.sm, border: C.border, background: C.surface.page }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: C.text.muted, marginBottom: 6 }}>Observações</p>
-                  <p style={{ fontSize: 13, color: C.text.secondary, lineHeight: 1.6 }}>{sheet.observacoes}</p>
+                <div
+                  className="bg-surface"
+                  style={{ padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--color-border)' }}
+                >
+                  <p className="text-text-muted" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Observacoes</p>
+                  <p className="text-text-secondary" style={{ fontSize: 13, lineHeight: 1.6 }}>{sheet.observacoes}</p>
                 </div>
               )}
 
-              {/* Cotação */}
+              {/* Cotacao */}
               <div>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: C.text.muted, marginBottom: 10 }}>
-                  Cotação Anexada
+                <p className="text-text-muted" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+                  Cotacao Anexada
                 </p>
                 {sheet.imagemOrcamento ? (
                   <img
                     src={sheet.imagemOrcamento}
-                    alt="Cotação"
-                    style={{ width: '100%', borderRadius: C.radius.sm, border: C.border, objectFit: 'contain', maxHeight: 280 }}
+                    alt="Cotacao"
+                    style={{ width: '100%', borderRadius: '6px', border: '1px solid var(--color-border)', objectFit: 'contain', maxHeight: 280 }}
                   />
                 ) : (
-                  <div style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    justifyContent: 'center', gap: 8, padding: '36px 0',
-                    border: '1px dashed #d1d5db', borderRadius: C.radius.sm, background: C.surface.page,
-                  }}>
-                    <FileText size={32} color="#d1d5db" />
-                    <p style={{ fontSize: 12, color: C.text.muted }}>Nenhum documento anexado</p>
+                  <div
+                    className="bg-surface"
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      justifyContent: 'center', gap: 8, padding: '36px 0',
+                      border: '1px dashed var(--color-border-light)', borderRadius: '6px',
+                    }}
+                  >
+                    <FileText size={32} className="text-text-muted" style={{ opacity: 0.4 }} />
+                    <p className="text-text-muted" style={{ fontSize: 12 }}>Nenhum documento anexado</p>
                   </div>
                 )}
               </div>
 
               {/* Decision bar no sheet */}
-              <div style={{ position: 'sticky', bottom: 0, background: '#fff', borderTop: C.border, paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+              <div
+                className="bg-surface-container-lowest"
+                style={{ position: 'sticky', bottom: 0, borderTop: '1px solid var(--color-border)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}
+              >
                 <DecisionBar
                   onNegar={() => { onNegar(sheet.id); setSheet(null); }}
                   onAprovar={() => { onAprovar(sheet); setSheet(null); }}
@@ -389,7 +418,7 @@ function AbaCompras({
   );
 }
 
-// ─── Aba Fabricação ────────────────────────────────────────────────────────────
+// ─── Aba Fabricacao ────────────────────────────────────────────────────────────
 function AbaFabricacao({
   items, dismissing, onNegar, onAprovar,
 }: {
@@ -398,14 +427,17 @@ function AbaFabricacao({
   onNegar: (id: number) => void;
   onAprovar: (id: number) => void;
 }) {
-  if (!items.length) return <Empty label="Nenhuma solicitação de fabricação pendente." />;
+  if (!items.length) return <Empty label="Nenhuma solicitacao de fabricacao pendente." />;
 
   return (
-    <div style={{ border: C.border, borderRadius: C.radius.md, overflow: 'hidden' }}>
+    <div
+      className="bg-surface-container-lowest overflow-hidden"
+      style={{ border: '1px solid var(--color-border)', borderRadius: '12px' }}
+    >
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ borderBottom: C.border }}>
-            <Th>Peça / Obra</Th><Th>Dimensões</Th><Th>Quantidade</Th><Th>Características</Th><Th>Solicitante</Th><Th>Ações</Th>
+          <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <Th>Peca / Obra</Th><Th>Dimensoes</Th><Th>Quantidade</Th><Th>Caracteristicas</Th><Th>Solicitante</Th><Th>Acoes</Th>
           </tr>
         </thead>
         <tbody>
@@ -416,7 +448,7 @@ function AbaFabricacao({
             if (s.sapatas > 0) dims.push(s.tamanhoSapata);
 
             const qtds: string[] = [];
-            if (s.paineis > 0) qtds.push(`${s.paineis} painéis`);
+            if (s.paineis > 0) qtds.push(`${s.paineis} paineis`);
             if (s.pilares > 0) qtds.push(`${s.pilares} pilares`);
             if (s.sapatas > 0) qtds.push(`${s.sapatas} sapatas`);
 
@@ -428,31 +460,32 @@ function AbaFabricacao({
             return (
               <tr
                 key={s.id}
+                className="hover:bg-table-hover transition-colors"
                 style={{
-                  borderBottom: C.borderLight,
+                  borderBottom: '1px solid var(--color-border)',
                   transition: 'opacity 0.3s ease, transform 0.3s ease',
                   opacity: dismissing.has(s.id) ? 0 : 1,
                   transform: dismissing.has(s.id) ? 'translateX(16px)' : 'none',
                 }}
               >
-                <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: C.text.primary }}>{s.obraNome}</p>
-                  <p style={{ fontSize: 11, color: C.text.muted, marginTop: 2 }}>{fmt.date(s.dataSolicitacaoRegistro)}</p>
+                <td style={{ padding: '16px 24px', verticalAlign: 'middle' }}>
+                  <p className="text-text-primary" style={{ fontSize: 13, fontWeight: 700 }}>{s.obraNome}</p>
+                  <p className="text-text-muted" style={{ fontSize: 11, marginTop: 2 }}>{fmt.date(s.dataSolicitacaoRegistro)}</p>
                 </td>
                 <Td mono>{dims.join(' / ') || '—'}</Td>
                 <Td mono bold>{qtds.join(', ') || '—'}</Td>
-                <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
+                <td style={{ padding: '16px 24px', verticalAlign: 'middle' }}>
                   {tags.length ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                       {tags.map(t => <TechTag key={t} label={t} />)}
                     </div>
-                  ) : <span style={{ fontSize: 13, color: C.text.muted }}>—</span>}
+                  ) : <span className="text-text-muted" style={{ fontSize: 13 }}>—</span>}
                 </td>
-                <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
-                  <p style={{ fontSize: 13, color: C.text.primary }}>{s.solicitante}</p>
-                  <p style={{ fontSize: 11, color: C.text.muted, marginTop: 2 }}>{s.cargoSolicitante}</p>
+                <td style={{ padding: '16px 24px', verticalAlign: 'middle' }}>
+                  <p className="text-text-primary" style={{ fontSize: 13 }}>{s.solicitante}</p>
+                  <p className="text-text-muted" style={{ fontSize: 11, marginTop: 2 }}>{s.cargoSolicitante}</p>
                 </td>
-                <td style={{ padding: '10px 16px', verticalAlign: 'middle' }}>
+                <td style={{ padding: '10px 24px', verticalAlign: 'middle' }}>
                   <DecisionBar sm onNegar={() => onNegar(s.id)} onAprovar={() => onAprovar(s.id)} />
                 </td>
               </tr>
@@ -464,7 +497,7 @@ function AbaFabricacao({
   );
 }
 
-// ─── Aba Logística ─────────────────────────────────────────────────────────────
+// ─── Aba Logistica ─────────────────────────────────────────────────────────────
 function AbaLogistica({
   items, dismissing, onNegar, onAprovar,
 }: {
@@ -473,14 +506,17 @@ function AbaLogistica({
   onNegar: (id: number) => void;
   onAprovar: (id: number) => void;
 }) {
-  if (!items.length) return <Empty label="Nenhum carregamento pendente de autorização." />;
+  if (!items.length) return <Empty label="Nenhum carregamento pendente de autorizacao." />;
 
   return (
-    <div style={{ border: C.border, borderRadius: C.radius.md, overflow: 'hidden' }}>
+    <div
+      className="bg-surface-container-lowest overflow-hidden"
+      style={{ border: '1px solid var(--color-border)', borderRadius: '12px' }}
+    >
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ borderBottom: C.border }}>
-            <Th>Obra</Th><Th>Tipo de Veículo</Th><Th>Qtd. Painéis</Th><Th>Sequência de Carregamento</Th><Th>Solicitante</Th><Th>Ações</Th>
+          <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <Th>Obra</Th><Th>Tipo de Veiculo</Th><Th>Qtd. Paineis</Th><Th>Sequencia de Carregamento</Th><Th>Solicitante</Th><Th>Acoes</Th>
           </tr>
         </thead>
         <tbody>
@@ -490,37 +526,41 @@ function AbaLogistica({
             return (
               <tr
                 key={c.id}
+                className="hover:bg-table-hover transition-colors"
                 style={{
-                  borderBottom: C.borderLight,
+                  borderBottom: '1px solid var(--color-border)',
                   transition: 'opacity 0.3s ease, transform 0.3s ease',
                   opacity: dismissing.has(c.id) ? 0 : 1,
                   transform: dismissing.has(c.id) ? 'translateX(16px)' : 'none',
                 }}
               >
-                <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: C.text.primary }}>{c.obraNome}</p>
-                  <p style={{ fontSize: 11, color: C.text.muted, marginTop: 2 }}>{fmt.date(c.dataSolicitacao)}</p>
+                <td style={{ padding: '16px 24px', verticalAlign: 'middle' }}>
+                  <p className="text-text-primary" style={{ fontSize: 13, fontWeight: 700 }}>{c.obraNome}</p>
+                  <p className="text-text-muted" style={{ fontSize: 11, marginTop: 2 }}>{fmt.date(c.dataSolicitacao)}</p>
                 </td>
-                <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
+                <td style={{ padding: '16px 24px', verticalAlign: 'middle' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Truck size={14} color={C.text.muted} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: C.text.primary }}>{c.veiculo}</span>
+                    <Truck size={14} className="text-text-muted" />
+                    <span className="text-text-primary" style={{ fontSize: 13, fontWeight: 600 }}>{c.veiculo}</span>
                   </div>
                 </td>
                 <Td mono bold>{c.paineis.length}</Td>
-                <td style={{ padding: '13px 16px', verticalAlign: 'middle', maxWidth: 280 }}>
-                  <code style={{
-                    display: 'block', fontSize: 11, color: C.text.secondary,
-                    background: C.surface.low, border: C.border,
-                    padding: '4px 8px', borderRadius: 4,
-                    fontVariantNumeric: 'tabular-nums',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
+                <td style={{ padding: '16px 24px', verticalAlign: 'middle', maxWidth: 280 }}>
+                  <code
+                    className="text-text-secondary bg-surface-container-low"
+                    style={{
+                      display: 'block', fontSize: 11,
+                      border: '1px solid var(--color-border)',
+                      padding: '4px 8px', borderRadius: 4,
+                      fontVariantNumeric: 'tabular-nums',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}
+                  >
                     {seq || '—'}
                   </code>
                 </td>
                 <Td>{c.solicitante}</Td>
-                <td style={{ padding: '10px 16px', verticalAlign: 'middle' }}>
+                <td style={{ padding: '10px 24px', verticalAlign: 'middle' }}>
                   <DecisionBar sm onNegar={() => onNegar(c.id)} onAprovar={() => onAprovar(c.id)} />
                 </td>
               </tr>
@@ -575,7 +615,7 @@ export default function Autorizacao() {
   // ── Handlers Compras ─────────────────────────────────────────────────────────
   const handleNegarCompra = useCallback((id: number) => {
     dismiss(id, () => autorizacaoApi.negarCompra(id),
-      { id: 0, type: 'negado', message: 'Solicitação de compra negada.' });
+      { id: 0, type: 'negado', message: 'Solicitacao de compra negada.' });
   }, [dismiss]);
 
   const handleAprovarCompra = useCallback((s: SolicitacaoCompra) => {
@@ -583,18 +623,18 @@ export default function Autorizacao() {
       { id: 0, type: 'aprovado', message: `Compra de "${s.item}" aprovada e enviada ao financeiro.` });
   }, [dismiss]);
 
-  // ── Handlers Fabricação ──────────────────────────────────────────────────────
+  // ── Handlers Fabricacao ──────────────────────────────────────────────────────
   const handleNegarFab = useCallback((id: number) => {
     dismiss(id, () => autorizacaoApi.negarFabricacao(id),
-      { id: 0, type: 'negado', message: 'Solicitação de fabricação negada.' });
+      { id: 0, type: 'negado', message: 'Solicitacao de fabricacao negada.' });
   }, [dismiss]);
 
   const handleAprovarFab = useCallback((id: number) => {
     dismiss(id, () => autorizacaoApi.aprovarFabricacao(id),
-      { id: 0, type: 'aprovado', message: 'Solicitação de fabricação aprovada.' });
+      { id: 0, type: 'aprovado', message: 'Solicitacao de fabricacao aprovada.' });
   }, [dismiss]);
 
-  // ── Handlers Logística ───────────────────────────────────────────────────────
+  // ── Handlers Logistica ───────────────────────────────────────────────────────
   const handleNegarLog = useCallback((id: number) => {
     dismiss(id, () => autorizacaoApi.negarLogistica(id),
       { id: 0, type: 'negado', message: 'Carregamento negado.' });
@@ -608,80 +648,95 @@ export default function Autorizacao() {
   // ── Tabs config ──────────────────────────────────────────────────────────────
   const TABS: { key: TabKey; label: string; count: number; icon: React.ReactNode }[] = [
     { key: 'compras',    label: 'Compras',    count: compras.length,    icon: <Package size={14} /> },
-    { key: 'fabricacao', label: 'Fabricação', count: fabricacoes.length, icon: <Wrench size={14} /> },
-    { key: 'logistica',  label: 'Logística',  count: logistica.length,  icon: <Truck size={14} /> },
+    { key: 'fabricacao', label: 'Fabricacao', count: fabricacoes.length, icon: <Wrench size={14} /> },
+    { key: 'logistica',  label: 'Logistica',  count: logistica.length,  icon: <Truck size={14} /> },
   ];
 
   return (
     <div>
 
       {/* ── Page header ── */}
-      <p style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: C.text.muted, marginBottom: 8 }}>
-        Sistema · Controle de Acesso
+      <p
+        className="text-text-muted uppercase tracking-widest font-extrabold"
+        style={{ fontSize: 11, marginBottom: 8 }}
+      >
+        Sistema - Controle de Acesso
       </p>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 44, height: 44, borderRadius: C.radius.lg,
-            background: C.blue.bg, border: `1px solid ${C.blue.border}`,
-          }}>
-            <Shield size={22} color={C.blue.text} />
+          <div
+            className="bg-primary-bg"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, borderRadius: '10px',
+              border: '1px solid var(--color-primary-light)',
+            }}
+          >
+            <Shield size={22} className="text-primary" />
           </div>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text.primary, lineHeight: 1.2 }}>
-              Central de Autorizações
+            <h1 className="text-text-primary" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.2 }}>
+              Central de Autorizacoes
             </h1>
-            <p style={{ fontSize: 13, color: C.text.muted, marginTop: 3 }}>
-              Perfil Master · Aprovações pendentes de Compras, Fabricação e Logística
+            <p className="text-text-secondary" style={{ fontSize: 14, marginTop: 3 }}>
+              Perfil Master - Aprovacoes pendentes de Compras, Fabricacao e Logistica
             </p>
           </div>
         </div>
 
         {total > 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '10px 16px', borderRadius: C.radius.md,
-            border: `1px solid ${C.rust.border}`, background: C.rust.bg,
-          }}>
-            <AlertTriangle size={15} color={C.rust.text} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: C.rust.text }}>
-              {total} pendência{total !== 1 ? 's' : ''} aguardando decisão
+          <div
+            className="bg-warning-bg text-warning-text"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 16px', borderRadius: '8px',
+              border: '1px solid var(--color-warning-bright)',
+            }}
+          >
+            <AlertTriangle size={15} />
+            <span style={{ fontSize: 13, fontWeight: 700 }}>
+              {total} pendencia{total !== 1 ? 's' : ''} aguardando decisao
             </span>
           </div>
         )}
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: C.border, marginBottom: 20 }}>
+      <div
+        className="bg-surface-container-low"
+        style={{ display: 'inline-flex', gap: 4, borderRadius: '10px', padding: 4, marginBottom: 20 }}
+      >
         {TABS.map(tab => {
           const active = activeTab === tab.key;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
+              className={
+                active
+                  ? 'bg-primary text-white'
+                  : 'text-text-secondary hover:bg-surface-container-high/50'
+              }
               style={{
                 display: 'flex', alignItems: 'center', gap: 7,
-                padding: '10px 20px', fontSize: 13, fontWeight: 700,
+                padding: '8px 18px', fontSize: 13, fontWeight: 700,
                 border: 'none', cursor: 'pointer',
-                borderBottom: active ? '2px solid #004ac6' : '2px solid transparent',
-                background: 'transparent', marginBottom: -1,
-                color: active ? C.blue.text : C.text.muted,
-                transition: 'color 0.12s, border-color 0.12s',
+                borderRadius: '8px',
+                transition: 'all 0.15s',
               }}
             >
               {tab.icon}
               {tab.label}
               {tab.count > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999,
-                  fontSize: 10, fontWeight: 800,
-                  background: active ? C.blue.text : C.rust.hover,
-                  color: active ? '#fff' : C.rust.text,
-                  border: `1px solid ${active ? C.blue.text : C.rust.border}`,
-                }}>
+                <span
+                  className={active ? 'bg-white/20 text-white' : 'bg-warning-bg text-warning-text'}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999,
+                    fontSize: 10, fontWeight: 800,
+                  }}
+                >
                   {tab.count}
                 </span>
               )}

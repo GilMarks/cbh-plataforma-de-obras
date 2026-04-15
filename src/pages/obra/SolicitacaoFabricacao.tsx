@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
+import Slideout from '../../components/shared/Slideout';
 import { solicitacoes as solicitacoesApi, obras as obrasApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
 import type { Solicitacao, Obra } from '../../lib/types';
@@ -169,94 +170,102 @@ export default function SolicitacaoFabricacao() {
         )}
       </div>
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 'var(--z-modal)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', padding: '16px' }}>
-          <div className="modal-card w-full overflow-y-auto" style={{ maxWidth: '640px', maxHeight: '90vh', padding: '32px' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
-              <h2 className="font-extrabold text-text-primary" style={{ fontSize: '20px' }}>Nova Solicitacao de Fabricacao</h2>
-              <button onClick={() => setModalOpen(false)} className="text-text-muted hover:text-text-primary"><X size={20} /></button>
-            </div>
-            <div className="flex flex-col gap-5">
+      <Slideout
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Nova Solicitação de Fabricação"
+        subtitle="Preencha os dados da solicitação para a obra"
+        footer={
+          <>
+            <button onClick={() => setModalOpen(false)} className="text-text-secondary font-medium hover:text-text-primary transition-colors" style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'none', border: 'none', cursor: 'pointer' }}>
+              Cancelar
+            </button>
+            <button onClick={handleCriar} className="bg-primary text-white font-semibold hover:opacity-90 transition-opacity" style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', border: 'none', cursor: 'pointer' }}>
+              Criar solicitação
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Obra */}
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Obra</label>
+            <select value={formObraId} onChange={e => setFormObraId(e.target.value)} className="w-full bg-surface-container-lowest border border-border-light" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px', color: 'var(--color-text-primary)' }}>
+              <option value="">Selecione a obra</option>
+              {obras.map(o => <option key={o.id} value={o.id}>{o.nome} — {o.cliente}</option>)}
+            </select>
+          </div>
+
+          {/* Paineis */}
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', padding: '16px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '14px' }}>Painéis</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {[
+                { label: 'Quantidade', type: 'number', value: formPaineis, onChange: (v: string) => setFormPaineis(v) },
+              ].map(f => (
+                <div key={f.label}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>{f.label}</label>
+                  <input type={f.type} value={f.value} onChange={e => f.onChange(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }} />
+                </div>
+              ))}
               <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Obra</label>
-                <select value={formObraId} onChange={e => setFormObraId(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}>
-                  <option value="">Selecione a obra</option>
-                  {obras.map(o => <option key={o.id} value={o.id}>{o.nome} — {o.cliente}</option>)}
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Tipo</label>
+                <select value={formTipoPainel} onChange={e => setFormTipoPainel(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }}>
+                  <option value="Liso">Liso</option>
+                  <option value="Carimbado">Carimbado</option>
                 </select>
               </div>
-
-              {/* Paineis */}
-              <div className="border border-border rounded-xl" style={{ padding: '20px' }}>
-                <p className="font-extrabold text-text-primary uppercase tracking-wider" style={{ fontSize: '12px', marginBottom: '12px' }}>Paineis</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Quantidade</label>
-                    <input type="number" value={formPaineis} onChange={e => setFormPaineis(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }} />
-                  </div>
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Tipo</label>
-                    <select value={formTipoPainel} onChange={e => setFormTipoPainel(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }}>
-                      <option value="Liso">Liso</option>
-                      <option value="Carimbado">Carimbado</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Comprimento (m)</label>
-                    <input type="number" step="0.1" value={formPainelComp} onChange={e => setFormPainelComp(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }} />
-                  </div>
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Altura (m)</label>
-                    <input type="number" step="0.1" value={formPainelAlt} onChange={e => setFormPainelAlt(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Pilares */}
-              <div className="border border-border rounded-xl" style={{ padding: '20px' }}>
-                <p className="font-extrabold text-text-primary uppercase tracking-wider" style={{ fontSize: '12px', marginBottom: '12px' }}>Pilares</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Quantidade</label>
-                    <input type="number" value={formPilares} onChange={e => setFormPilares(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }} />
-                  </div>
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Altura (m)</label>
-                    <input type="number" step="0.1" value={formPilarAlt} onChange={e => setFormPilarAlt(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Sapatas */}
-              <div className="border border-border rounded-xl" style={{ padding: '20px' }}>
-                <p className="font-extrabold text-text-primary uppercase tracking-wider" style={{ fontSize: '12px', marginBottom: '12px' }}>Sapatas</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Quantidade</label>
-                    <input type="number" value={formSapatas} onChange={e => setFormSapatas(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }} />
-                  </div>
-                  <div>
-                    <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Tamanho</label>
-                    <select value={formTamanhoSapata} onChange={e => setFormTamanhoSapata(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '4px' }}>
-                      <option value="Grande">Grande (90x80x80)</option>
-                      <option value="Pequena">Pequena (70x50x50)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
               <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Observacoes</label>
-                <textarea value={formObs} onChange={e => setFormObs(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px', minHeight: '60px', resize: 'vertical' }} />
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Comprimento (m)</label>
+                <input type="number" step="0.1" value={formPainelComp} onChange={e => setFormPainelComp(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }} />
               </div>
-            </div>
-            <div className="flex justify-end gap-3" style={{ marginTop: '24px' }}>
-              <button onClick={() => setModalOpen(false)} className="text-text-secondary font-bold" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Cancelar</button>
-              <button onClick={handleCriar} className="bg-primary text-white font-bold hover:opacity-90" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Criar Solicitacao</button>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Altura (m)</label>
+                <input type="number" step="0.1" value={formPainelAlt} onChange={e => setFormPainelAlt(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }} />
+              </div>
             </div>
           </div>
+
+          {/* Pilares */}
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', padding: '16px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '14px' }}>Pilares</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Quantidade</label>
+                <input type="number" value={formPilares} onChange={e => setFormPilares(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Altura (m)</label>
+                <input type="number" step="0.1" value={formPilarAlt} onChange={e => setFormPilarAlt(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Sapatas */}
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', padding: '16px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '14px' }}>Sapatas</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Quantidade</label>
+                <input type="number" value={formSapatas} onChange={e => setFormSapatas(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '5px' }}>Tamanho</label>
+                <select value={formTamanhoSapata} onChange={e => setFormTamanhoSapata(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '14px' }}>
+                  <option value="Grande">Grande (90×80×80)</option>
+                  <option value="Pequena">Pequena (70×50×50)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Observações */}
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Observações</label>
+            <textarea value={formObs} onChange={e => setFormObs(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px', minHeight: '80px', resize: 'vertical' }} />
+          </div>
         </div>
-      )}
+      </Slideout>
     </div>
   );
 }

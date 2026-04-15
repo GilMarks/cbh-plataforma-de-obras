@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Factory, DollarSign, Settings, History,
   Package, BarChart3, FileText, CheckCircle, Landmark,
-  ChevronRight, LogOut, ChevronsLeft, ChevronsRight,
-  Shield, HardHat, Truck, Receipt, CheckSquare,
+  ChevronDown, LogOut, Info, Shield, HardHat, Truck, Receipt, CheckSquare,
   ShoppingCart, Activity, Database, Wrench,
-  Users, UserPlus, UserCog,
+  Users, UserPlus, UserCog, PanelLeftClose,
 } from 'lucide-react';
 import { getMenuFiltrado, type MenuItem } from '../../lib/permissions';
 import { clearCurrentUser, getCurrentUser } from '../../lib/storage';
@@ -14,7 +13,7 @@ import { clearAuth } from '../../lib/api';
 import { useSidebar } from '../../contexts/SidebarContext';
 import iconLogo from '../../assets/icon-logo.png';
 
-const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+const iconMap: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   LayoutDashboard, Factory, DollarSign, Settings, History,
   Package, BarChart3, FileText, CheckCircle, Landmark,
   Shield, HardHat, Truck, Receipt, CheckSquare,
@@ -22,9 +21,104 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   Users, UserPlus, UserCog,
 };
 
-function MenuIcon({ name, size = 18 }: { name: string; size?: number }) {
-  const Icon = iconMap[name] || Settings;
-  return <Icon size={size} />;
+function Icon({ name, size = 16 }: { name: string; size?: number }) {
+  const C = iconMap[name] || Settings;
+  return <C size={size} strokeWidth={1.75} />;
+}
+
+const S = {
+  bg:          'var(--color-surface)',
+  bgLowest:    'var(--color-surface-container-lowest)',
+  border:      'var(--color-border)',
+  borderLight: 'var(--color-border-light)',
+  textPrimary: 'var(--color-text-primary)',
+  textSecondary:'var(--color-text-secondary)',
+  textMuted:   'var(--color-text-muted)',
+  primary:     'var(--color-primary)',
+  primaryBg:   'var(--color-primary-bg)',
+  primaryLight:'var(--color-primary-light)',
+  iconBg:      'var(--color-surface-container)',
+  iconBgActive:'var(--color-primary-light)',
+  activeText:  'var(--color-primary-dark)',
+  brandBg:     'var(--color-sidebar-brand)', /* always dark in both themes */
+} as const;
+
+/* Tooltip flyout para collapsed mode */
+function CollapsedTooltip({ label, children: childItems, path, onNavigate }: {
+  label: string;
+  children?: MenuItem[];
+  path?: string;
+  onNavigate: (p: string) => void;
+}) {
+  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  return (
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {show && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '100%',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            marginLeft: '12px',
+            zIndex: 300,
+            background: S.bgLowest,
+            border: `1px solid ${S.border}`,
+            borderRadius: '10px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
+            minWidth: '160px',
+            padding: '6px',
+            pointerEvents: 'auto',
+          }}
+        >
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute', left: '-5px', top: '50%', transform: 'translateY(-50%)',
+            width: '10px', height: '10px', background: S.bgLowest,
+            border: `1px solid ${S.border}`, borderRight: 'none', borderTop: 'none',
+            rotate: '45deg',
+          }} />
+          <p style={{ fontSize: '11px', fontWeight: 700, color: S.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '4px 8px 6px' }}>
+            {label}
+          </p>
+          {childItems ? childItems.map(child => (
+            <button
+              key={child.id}
+              onClick={() => child.path && onNavigate(child.path)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+                padding: '8px 10px', borderRadius: '7px', fontSize: '13px', fontWeight: 500,
+                color: S.textSecondary, background: 'none', border: 'none', cursor: 'pointer',
+                textAlign: 'left',
+              }}
+              className="hover:bg-gray-50 transition-colors"
+            >
+              {child.label}
+            </button>
+          )) : path && (
+            <button
+              onClick={() => onNavigate(path)}
+              style={{
+                display: 'flex', width: '100%', padding: '8px 10px', borderRadius: '7px',
+                fontSize: '13px', fontWeight: 500, color: S.textSecondary,
+                background: 'none', border: 'none', cursor: 'pointer',
+              }}
+              className="hover:bg-gray-50 transition-colors"
+            >
+              Abrir
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Sidebar() {
@@ -38,16 +132,15 @@ export default function Sidebar() {
 
   const menuItems = getMenuFiltrado(user.cargo);
 
+  // Separate footer items from main nav
+  const FOOTER_IDS = ['configuracoes', 'usuarios'];
+  const mainItems = menuItems.filter(i => !FOOTER_IDS.includes(i.id));
+  const footerItems = menuItems.filter(i => FOOTER_IDS.includes(i.id));
+
   const toggleMenu = (id: string) => {
-    if (collapsed) {
-      toggleCollapsed();
-      setExpandedMenus(new Set([id]));
-      return;
-    }
     setExpandedMenus(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
@@ -62,274 +155,367 @@ export default function Sidebar() {
     navigate('/login');
   };
 
+  const initials = user.login.slice(0, 2).toUpperCase();
+
+  // ── COLLAPSED ──────────────────────────────────────────────────
+  if (collapsed) {
+    return (
+      <aside
+        className="sidebar-transition flex flex-col h-screen overflow-visible"
+        style={{
+          width: '64px',
+          minWidth: '64px',
+          background: S.bg,
+          borderRight: `1px solid ${S.border}`,
+        }}
+      >
+        {/* Logo */}
+        <div style={{ padding: '18px 0', display: 'flex', justifyContent: 'center', borderBottom: `1px solid ${S.border}` }}>
+          <button
+            onClick={toggleCollapsed}
+            style={{
+              width: '36px', height: '36px', borderRadius: '10px',
+              background: S.brandBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: 'none', cursor: 'pointer', flexShrink: 0,
+            }}
+            title="Expandir menu"
+          >
+            <img src={iconLogo} alt="CBH" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: 'brightness(10)' }} />
+          </button>
+        </div>
+
+        {/* Nav icons */}
+        <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'visible', padding: '12px 0', display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+          {mainItems.map(item => {
+            const active = item.children ? isGroupActive(item) : isActive(item.path);
+            return (
+              <div key={item.id} style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={() => item.path ? navigate(item.path) : undefined}
+                  title={item.label}
+                  style={{
+                    width: '40px', height: '40px', borderRadius: '9px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: active ? S.primaryBg : 'none',
+                    color: active ? S.primary : S.textMuted,
+                    border: active ? `1px solid ${S.primaryLight}` : '1px solid transparent',
+                    cursor: 'pointer',
+                  }}
+                  className="hover:bg-gray-100 hover:text-gray-700 transition-all"
+                >
+                  <Icon name={item.icon} size={17} />
+                </button>
+                <CollapsedTooltip
+                  label={item.label}
+                  children={item.children}
+                  path={item.path}
+                  onNavigate={navigate}
+                />
+              </div>
+            );
+          })}
+
+          {/* Section label */}
+          {mainItems.length > 0 && (
+            <div style={{ width: '32px', height: '1px', background: S.border, margin: '8px 0' }} />
+          )}
+
+          {footerItems.map(item => (
+            <div key={item.id} style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <button
+                onClick={() => item.path && navigate(item.path)}
+                title={item.label}
+                style={{
+                  width: '40px', height: '40px', borderRadius: '9px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: isActive(item.path) ? S.primaryBg : 'none',
+                  color: isActive(item.path) ? S.primary : S.textMuted,
+                  border: '1px solid transparent',
+                  cursor: 'pointer',
+                }}
+                className="hover:bg-gray-100 hover:text-gray-700 transition-all"
+              >
+                <Icon name={item.icon} size={17} />
+              </button>
+            </div>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div style={{ borderTop: `1px solid ${S.border}`, padding: '12px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            style={{ width: '40px', height: '40px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: S.textMuted }}
+            className="hover:bg-red-50 hover:text-red-500 transition-all"
+          >
+            <LogOut size={17} strokeWidth={1.75} />
+          </button>
+          {/* Avatar */}
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: S.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '11px', fontWeight: 700 }}>
+            {initials}
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
+  // ── EXPANDED ───────────────────────────────────────────────────
   return (
     <aside
-      className="sidebar-transition flex flex-col h-screen bg-surface-container-low overflow-hidden"
+      className="sidebar-transition flex flex-col h-screen"
       style={{
-        width: collapsed ? '80px' : '272px',
-        minWidth: collapsed ? '80px' : '272px',
+        width: '240px',
+        minWidth: '240px',
+        background: S.bg,
+        borderRight: `1px solid ${S.border}`,
       }}
     >
       {/* ── Brand ── */}
       <div
-        className="flex items-center shrink-0"
         style={{
-          padding: collapsed ? '28px 20px 20px 20px' : '28px 24px 20px 24px',
-          gap: '14px',
-          justifyContent: collapsed ? 'center' : 'flex-start',
+          padding: '16px 16px 14px',
+          borderBottom: `1px solid ${S.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '10px',
         }}
       >
-        <img
-          src={iconLogo}
-          alt="CBH"
-          className="object-contain"
-          style={{ height: '40px', width: '40px', flexShrink: 0 }}
-        />
-        {!collapsed && (
-          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <h2
-              className="font-extrabold text-text-primary leading-none tracking-tight"
-              style={{ fontSize: '18px' }}
-            >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          <div style={{
+            width: '34px', height: '34px', borderRadius: '9px', background: S.brandBg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <img src={iconLogo} alt="CBH" style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(10)' }} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: '14px', fontWeight: 700, color: S.textPrimary, lineHeight: 1.2, letterSpacing: '-0.01em' }}>
               CBH
-            </h2>
-            <p
-              className="text-text-muted font-medium uppercase tracking-widest"
-              style={{ fontSize: '10px', marginTop: '4px' }}
-            >
+            </p>
+            <p style={{ fontSize: '10px', color: S.textMuted, fontWeight: 500, letterSpacing: '0.04em' }}>
               Construction Hub
             </p>
           </div>
-        )}
-      </div>
-
-      {/* ── Separador ── */}
-      <div
-        className="bg-surface-container-high"
-        style={{ height: '1px', margin: collapsed ? '0 16px' : '0 24px', opacity: 0.5 }}
-      />
-
-      {/* ── Toggle Button ── */}
-      <div style={{ padding: collapsed ? '12px 16px' : '12px 16px' }}>
+        </div>
         <button
           onClick={toggleCollapsed}
-          className="w-full flex items-center rounded-lg text-text-muted hover:bg-surface-container-high/60 hover:text-text-secondary transition-all duration-150"
           style={{
-            padding: '10px 16px',
-            gap: '12px',
-            justifyContent: collapsed ? 'center' : 'flex-start',
+            width: '28px', height: '28px', borderRadius: '7px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'none', border: 'none', cursor: 'pointer', color: S.textMuted, flexShrink: 0,
           }}
-          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+          className="hover:bg-gray-200 hover:text-gray-600 transition-all"
+          title="Recolher menu"
         >
-          {collapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
-          {!collapsed && (
-            <span className="font-bold uppercase tracking-wider" style={{ fontSize: '10px' }}>
-              Recolher
-            </span>
-          )}
+          <PanelLeftClose size={15} strokeWidth={1.75} />
         </button>
       </div>
 
-      {/* ── Navigation ── */}
-      <nav
-        className="flex-1 overflow-y-auto"
-        style={{ padding: collapsed ? '16px 12px' : '16px 16px' }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {menuItems.map(item => (
-            <div key={item.id}>
-              {item.children ? (
-                <>
-                  {/* Menu pai com filhos */}
-                  <button
-                    onClick={() => toggleMenu(item.id)}
-                    className={`
-                      w-full flex items-center rounded-lg
-                      font-medium transition-all duration-150
-                      ${isGroupActive(item)
-                        ? 'bg-primary-bg text-primary font-bold'
-                        : 'text-text-secondary hover:bg-surface-container-high/60'}
-                    `}
-                    style={{
-                      padding: collapsed ? '14px 0' : '14px 16px',
-                      gap: '12px',
-                      justifyContent: collapsed ? 'center' : 'flex-start',
-                    }}
-                    title={collapsed ? item.label : undefined}
-                  >
-                    <MenuIcon name={item.icon} />
-                    {!collapsed && (
-                      <>
-                        <span
-                          className="flex-1 text-left font-bold uppercase tracking-wider"
-                          style={{ fontSize: '11px', overflow: 'hidden', whiteSpace: 'nowrap' }}
-                        >
-                          {item.label}
-                        </span>
-                        <ChevronRight
-                          size={14}
-                          className={`transition-transform duration-200 ${
-                            expandedMenus.has(item.id) || isGroupActive(item) ? 'rotate-90' : ''
-                          }`}
-                        />
-                      </>
-                    )}
-                  </button>
+      {/* ── Nav ── */}
+      <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 10px 0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          {mainItems.map((item, idx) => {
+            const groupActive = item.children ? isGroupActive(item) : false;
+            const itemActive = isActive(item.path);
+            const isExpanded = expandedMenus.has(item.id) || !!groupActive;
 
-                  {/* Submenus — hidden quando collapsed */}
-                  {!collapsed && (expandedMenus.has(item.id) || isGroupActive(item)) && (
-                    <div
+            // Section header label for grouped items (first item of a new "section")
+            const prevItem = mainItems[idx - 1];
+            const showSectionDivider = idx > 0 && !!item.children !== !!prevItem?.children;
+
+            return (
+              <div key={item.id}>
+                {showSectionDivider && (
+                  <div style={{ height: '1px', background: S.bg, margin: '6px 4px' }} />
+                )}
+
+                {item.children ? (
+                  <div>
+                    {/* Group header */}
+                    <button
+                      onClick={() => toggleMenu(item.id)}
                       style={{
-                        marginLeft: '20px',
-                        marginTop: '6px',
-                        paddingLeft: '16px',
-                        borderLeft: '2px solid var(--color-surface-container-high)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '7px 10px', borderRadius: '8px',
+                        background: groupActive ? S.primaryBg : 'none',
+                        color: groupActive ? S.activeText : S.textSecondary,
+                        border: 'none', cursor: 'pointer', textAlign: 'left',
                       }}
+                      className={`transition-all ${!groupActive ? 'hover:bg-gray-100' : ''}`}
                     >
-                      {item.children.map(child => (
-                        <button
-                          key={child.id}
-                          onClick={() => child.path && navigate(child.path)}
-                          className={`
-                            w-full flex items-center rounded-lg
-                            transition-all duration-150
-                            ${isActive(child.path)
-                              ? 'bg-primary-bg text-primary font-bold'
-                              : 'text-text-muted hover:bg-surface-container-high/60 hover:text-text-secondary'}
-                          `}
-                          style={{ padding: '12px 14px', gap: '10px' }}
-                        >
-                          <MenuIcon name={child.icon} size={16} />
-                          <span style={{ fontSize: '12px', overflow: 'hidden', whiteSpace: 'nowrap' }} className="font-medium">
-                            {child.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                /* Menu item simples (sem filhos) */
-                <button
-                  onClick={() => item.path && navigate(item.path)}
-                  className={`
-                    w-full flex items-center rounded-lg
-                    transition-all duration-150
-                    ${isActive(item.path)
-                      ? 'bg-primary-bg text-primary font-bold'
-                      : 'text-text-secondary hover:bg-surface-container-high/60'}
-                  `}
-                  style={{
-                    padding: collapsed ? '14px 0' : '14px 16px',
-                    gap: '12px',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                  }}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <MenuIcon name={item.icon} />
-                  {!collapsed && (
-                    <span
-                      className="font-bold uppercase tracking-wider"
-                      style={{ fontSize: '11px', overflow: 'hidden', whiteSpace: 'nowrap' }}
-                    >
+                      <span style={{
+                        width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: groupActive ? S.iconBgActive : S.iconBg,
+                        color: groupActive ? S.primary : S.textMuted,
+                      }}>
+                        <Icon name={item.icon} size={14} />
+                      </span>
+                      <span style={{ flex: 1, fontSize: '13px', fontWeight: 600, letterSpacing: '-0.01em' }}>
+                        {item.label}
+                      </span>
+                      <ChevronDown
+                        size={13}
+                        strokeWidth={2}
+                        style={{
+                          color: S.textMuted,
+                          transition: 'transform 0.2s',
+                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                          flexShrink: 0,
+                        }}
+                      />
+                    </button>
+
+                    {/* Children */}
+                    {isExpanded && (
+                      <div style={{ paddingLeft: '16px', marginTop: '1px', marginBottom: '2px' }}>
+                        {/* Vertical line */}
+                        <div style={{ borderLeft: `1px solid ${S.border}`, paddingLeft: '10px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                          {item.children.map(child => {
+                            const childActive = isActive(child.path);
+                            return (
+                              <button
+                                key={child.id}
+                                onClick={() => child.path && navigate(child.path)}
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: '8px',
+                                  padding: '6px 10px', borderRadius: '7px', width: '100%',
+                                  fontSize: '13px',
+                                  fontWeight: childActive ? 600 : 400,
+                                  color: childActive ? S.activeText : S.textMuted,
+                                  background: childActive ? S.primaryBg : 'none',
+                                  border: 'none', cursor: 'pointer', textAlign: 'left',
+                                }}
+                                className={`transition-all ${!childActive ? 'hover:bg-gray-100 hover:text-gray-700' : ''}`}
+                              >
+                                {/* Active indicator dot */}
+                                <span style={{
+                                  width: '5px', height: '5px', borderRadius: '50%', flexShrink: 0,
+                                  background: childActive ? S.primary : S.border,
+                                }} />
+                                {child.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => item.path && navigate(item.path)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '7px 10px', borderRadius: '8px',
+                      background: itemActive ? S.primaryBg : 'none',
+                      color: itemActive ? S.activeText : S.textSecondary,
+                      border: 'none', cursor: 'pointer', textAlign: 'left',
+                    }}
+                    className={`transition-all ${!itemActive ? 'hover:bg-gray-100' : ''}`}
+                  >
+                    <span style={{
+                      width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: itemActive ? S.iconBgActive : S.iconBg,
+                      color: itemActive ? S.primary : S.textMuted,
+                    }}>
+                      <Icon name={item.icon} size={14} />
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: itemActive ? 600 : 500, letterSpacing: '-0.01em' }}>
                       {item.label}
                     </span>
-                  )}
-                </button>
-              )}
-            </div>
-          ))}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </nav>
 
-      {/* ── Separador ── */}
-      <div
-        className="bg-surface-container-high"
-        style={{ height: '1px', margin: collapsed ? '0 16px' : '0 24px', opacity: 0.5 }}
-      />
+      {/* ── Footer ── */}
+      <div style={{ borderTop: `1px solid ${S.border}`, padding: '10px' }}>
+        {/* Footer nav items */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '8px' }}>
+          {footerItems.map(item => {
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.id}
+                onClick={() => item.path && navigate(item.path)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '7px 10px', borderRadius: '8px',
+                  background: active ? S.primaryBg : 'none',
+                  color: active ? S.activeText : S.textMuted,
+                  border: 'none', cursor: 'pointer', textAlign: 'left',
+                }}
+                className="hover:bg-gray-100 hover:text-gray-600 transition-all"
+              >
+                <span style={{
+                  width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: active ? S.iconBgActive : 'none',
+                  color: active ? S.primary : S.textMuted,
+                }}>
+                  <Icon name={item.icon} size={14} />
+                </span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: active ? S.activeText : S.textMuted }}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
 
-      {/* ── Profile + Logout Group (base) ── */}
-      <div
-        className="shrink-0"
-        style={{
-          padding: collapsed ? '16px 10px' : '16px 12px',
-        }}
-      >
-        <div
-          style={{
-            background: 'rgba(230, 232, 234, 0.3)',
-            borderRadius: '12px',
-            padding: collapsed ? '16px 8px' : '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: collapsed ? '12px' : '0',
-          }}
-        >
-          {/* Profile row */}
-          <div
-            className="flex items-center"
+          {/* Info (static) */}
+          <button
             style={{
-              gap: '12px',
-              justifyContent: collapsed ? 'center' : 'flex-start',
+              width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '7px 10px', borderRadius: '8px',
+              background: 'none', border: 'none', cursor: 'default', textAlign: 'left',
+              color: S.textMuted,
             }}
           >
-            <div
-              className="rounded-lg bg-primary flex items-center justify-center text-white font-bold shrink-0"
-              style={{
-                width: collapsed ? '36px' : '40px',
-                height: collapsed ? '36px' : '40px',
-                fontSize: collapsed ? '14px' : '15px',
-                borderRadius: '10px',
-              }}
-            >
-              {user.login.charAt(0).toUpperCase()}
-            </div>
-            {!collapsed && (
-              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                <p
-                  className="font-bold text-text-primary uppercase tracking-wider truncate"
-                  style={{ fontSize: '12px' }}
-                >
-                  {user.login}
-                </p>
-                <p
-                  className="text-text-muted font-medium uppercase truncate"
-                  style={{ fontSize: '10px', marginTop: '2px' }}
-                >
-                  {user.cargo}
-                </p>
-              </div>
-            )}
+            <span style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: S.textMuted }}>
+              <Info size={14} strokeWidth={1.75} />
+            </span>
+            <span style={{ fontSize: '13px', fontWeight: 500, color: S.textMuted }}>
+              CBH v2.3
+            </span>
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: '1px', background: S.border, marginBottom: '8px' }} />
+
+        {/* User + Logout */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 6px' }}>
+          <div style={{
+            width: '30px', height: '30px', borderRadius: '50%',
+            background: S.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: '11px', fontWeight: 700, flexShrink: 0,
+          }}>
+            {initials}
           </div>
-
-          {/* Separador sutil dentro do grupo */}
-          {!collapsed && (
-            <div
-              className="bg-surface-container-high"
-              style={{ height: '1px', margin: '12px 0', opacity: 0.4 }}
-            />
-          )}
-
-          {/* Logout button */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '12px', fontWeight: 600, color: S.textPrimary, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user.login}
+            </p>
+            <p style={{ fontSize: '10px', color: S.textMuted, fontWeight: 500, marginTop: '1px' }}>
+              {user.cargo}
+            </p>
+          </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center rounded-lg text-text-muted hover:bg-surface-container-high/60 hover:text-danger transition-all duration-150"
+            title="Sair"
             style={{
-              padding: collapsed ? '10px 0' : '10px 12px',
-              gap: '10px',
-              justifyContent: collapsed ? 'center' : 'flex-start',
+              width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'none', border: 'none', cursor: 'pointer', color: S.textMuted,
             }}
-            title={collapsed ? 'Sair' : undefined}
+            className="hover:bg-red-50 hover:text-red-500 transition-all"
           >
-            <LogOut size={16} />
-            {!collapsed && (
-              <span className="font-bold uppercase tracking-wider" style={{ fontSize: '11px' }}>
-                Sair
-              </span>
-            )}
+            <LogOut size={14} strokeWidth={1.75} />
           </button>
         </div>
       </div>

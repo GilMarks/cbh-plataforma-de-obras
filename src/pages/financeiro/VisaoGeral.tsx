@@ -9,7 +9,16 @@ import type { LancamentoFinanceiro } from '../../lib/types';
 
 type DateRange = 'mes-atual' | 'ultimos-30' | 'ano-atual';
 
-const DONUT_COLORS = ['#004ac6', '#515f74', '#16a34a', '#ef4444', '#8b5cf6', '#f59e0b'];
+const CHART_SUCCESS = 'var(--color-success)';
+const CHART_DANGER = 'var(--color-danger)';
+const CHART_PRIMARY = 'var(--color-primary)';
+const CHART_SECONDARY = 'var(--color-text-secondary)';
+const CHART_WARNING = 'var(--color-warning)';
+const CHART_INFO = 'var(--color-info)';
+const CHART_TICK = 'var(--color-text-muted)';
+const CHART_GRID = 'var(--color-border)';
+
+const DONUT_COLORS = [CHART_PRIMARY, CHART_SECONDARY, CHART_SUCCESS, CHART_DANGER, CHART_INFO, CHART_WARNING];
 
 const DATE_LABELS: Record<DateRange, string> = {
   'mes-atual': 'Este Mes',
@@ -251,8 +260,8 @@ export default function VisaoGeral() {
               Receitas
             </p>
             <div
-              className="flex items-center justify-center"
-              style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: 'rgba(22, 163, 74, 0.08)' }}
+              className="flex items-center justify-center bg-success-bg"
+              style={{ width: '28px', height: '28px', borderRadius: '8px' }}
             >
               <TrendingUp size={15} className="text-success" />
             </div>
@@ -275,8 +284,8 @@ export default function VisaoGeral() {
               Despesas
             </p>
             <div
-              className="flex items-center justify-center"
-              style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.08)' }}
+              className="flex items-center justify-center bg-danger-bg"
+              style={{ width: '28px', height: '28px', borderRadius: '8px' }}
             >
               <TrendingDown size={15} className="text-danger" />
             </div>
@@ -291,11 +300,12 @@ export default function VisaoGeral() {
 
         {/* Inadimplencia — alert card */}
         <div
+          className="bg-danger-bg"
           style={{
             borderRadius: '12px',
-            border: '1px solid rgba(239, 68, 68, 0.15)',
+            border: '1px solid var(--color-danger)',
             padding: '24px',
-            backgroundColor: 'rgba(239, 68, 68, 0.03)',
+            opacity: 0.85,
           }}
         >
           <div className="flex items-center justify-between" style={{ marginBottom: '14px' }}>
@@ -332,11 +342,11 @@ export default function VisaoGeral() {
             </div>
             <div className="flex items-center" style={{ gap: '20px' }}>
               <div className="flex items-center" style={{ gap: '6px' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#16a34a' }} />
+                <span className="bg-success" style={{ width: '10px', height: '10px', borderRadius: '2px' }} />
                 <span className="font-bold text-text-muted uppercase" style={{ fontSize: '10px' }}>Entradas</span>
               </div>
               <div className="flex items-center" style={{ gap: '6px' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#ef4444' }} />
+                <span className="bg-danger" style={{ width: '10px', height: '10px', borderRadius: '2px' }} />
                 <span className="font-bold text-text-muted uppercase" style={{ fontSize: '10px' }}>Saidas</span>
               </div>
             </div>
@@ -345,25 +355,25 @@ export default function VisaoGeral() {
             <BarChart data={fluxoData} barGap={4} barCategoryGap="20%">
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(195, 198, 215, 0.2)"
+                stroke={CHART_GRID}
                 vertical={false}
               />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 11, fill: '#737686', fontWeight: 700 }}
+                tick={{ fontSize: 11, fill: CHART_TICK, fontWeight: 700 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: '#737686' }}
+                tick={{ fontSize: 11, fill: CHART_TICK }}
                 tickFormatter={formatCompact}
                 axisLine={false}
                 tickLine={false}
                 width={48}
               />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(195, 198, 215, 0.1)' }} />
-              <Bar dataKey="entradas" fill="#16a34a" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="saidas" fill="#ef4444" radius={[3, 3, 0, 0]} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: CHART_GRID }} />
+              <Bar dataKey="entradas" fill={CHART_SUCCESS} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="saidas" fill={CHART_DANGER} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -405,7 +415,7 @@ export default function VisaoGeral() {
             {distribuicaoData.map((entry, i) => (
               <div key={entry.name} className="flex items-center justify-between">
                 <div className="flex items-center" style={{ gap: '10px' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length], flexShrink: 0 }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] as string, flexShrink: 0 }} />
                   <span className="text-text-primary font-medium" style={{ fontSize: '13px' }}>{entry.name}</span>
                 </div>
                 <span className="font-bold tabular-nums tracking-tight text-text-primary" style={{ fontSize: '13px' }}>
@@ -438,8 +448,8 @@ export default function VisaoGeral() {
               </p>
             </div>
             <span
-              className="font-bold text-danger tabular-nums tracking-tight"
-              style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', backgroundColor: 'rgba(239, 68, 68, 0.06)' }}
+              className="font-bold text-danger tabular-nums tracking-tight bg-danger-bg"
+              style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px' }}
             >
               {proximasPagar.length} pendente{proximasPagar.length !== 1 ? 's' : ''}
             </span>
@@ -528,8 +538,8 @@ export default function VisaoGeral() {
               </p>
             </div>
             <span
-              className="font-bold text-success tabular-nums tracking-tight"
-              style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', backgroundColor: 'rgba(22, 163, 74, 0.06)' }}
+              className="font-bold text-success tabular-nums tracking-tight bg-success-bg"
+              style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px' }}
             >
               {ultimasEntradas.length} recebido{ultimasEntradas.length !== 1 ? 's' : ''}
             </span>

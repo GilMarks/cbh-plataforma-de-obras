@@ -208,13 +208,12 @@ export default function EstoquePecas() {
               <X size={14} /> Limpar
             </button>
             <button
-              className="flex items-center font-bold text-white transition-all hover:opacity-90"
+              className="flex items-center font-bold text-white transition-all hover:opacity-90 bg-success"
               style={{
                 gap: '8px',
                 padding: '12px 20px',
                 borderRadius: '10px',
                 fontSize: '13px',
-                backgroundColor: '#16a34a',
               }}
             >
               <Truck size={16} />
@@ -375,23 +374,21 @@ export default function EstoquePecas() {
       {/* ── Selection bar ── */}
       {selectedPieces.size > 0 && (
         <div
-          className="flex items-center justify-between"
+          className="flex items-center justify-between bg-success-bg"
           style={{
             padding: '14px 24px',
             borderRadius: '10px',
-            border: '2px solid #16a34a',
-            background: 'rgba(22, 163, 74, 0.06)',
+            border: '2px solid var(--color-success)',
             marginTop: '-12px',
           }}
         >
           <div className="flex items-center" style={{ gap: '10px' }}>
             <div
-              className="flex items-center justify-center text-white font-bold"
+              className="flex items-center justify-center text-white font-bold bg-success"
               style={{
                 width: '24px',
                 height: '24px',
                 borderRadius: '6px',
-                backgroundColor: '#16a34a',
                 fontSize: '12px',
               }}
             >

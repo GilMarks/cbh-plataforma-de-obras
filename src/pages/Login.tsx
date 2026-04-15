@@ -42,19 +42,19 @@ export default function Login() {
       {/* Left panel — brand */}
       <div
         className="hidden lg:flex flex-col overflow-hidden relative"
-        style={{ width: '45%', backgroundColor: '#0d1117', padding: '56px 48px' }}
+        style={{ width: '45%', backgroundColor: '#111827', padding: '56px 48px' }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             opacity: 0.07,
-            backgroundImage: 'radial-gradient(circle at 2px 2px, #ffffff 1px, transparent 0)',
+            backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.8) 1px, transparent 0)',
             backgroundSize: '36px 36px',
           }}
         />
         <div
           className="absolute top-0 left-0 right-0"
-          style={{ height: 3, background: 'linear-gradient(90deg, #004ac6, #2563eb, transparent)' }}
+          style={{ height: 3, background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-dark, #2563eb), transparent)' }}
         />
 
         <div className="relative z-10">
@@ -62,13 +62,13 @@ export default function Login() {
         </div>
 
         <div className="flex-1 flex flex-col justify-center relative z-10">
-          <p style={{ fontSize: 11, fontWeight: 800, color: '#004ac6', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>
             Plataforma Industrial
           </p>
-          <h1 style={{ fontSize: 34, fontWeight: 900, color: '#ffffff', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 16 }}>
+          <h1 style={{ fontSize: 34, fontWeight: 900, color: 'rgba(255,255,255,0.95)', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 16 }}>
             Construction<br />Business Hub
           </h1>
-          <p style={{ fontSize: 15, color: '#8b949e', lineHeight: 1.6, maxWidth: 340, marginBottom: 48 }}>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, maxWidth: 340, marginBottom: 48 }}>
             Gestão inteligente para a indústria de pré-moldados. Produção, finanças e obras em um único lugar.
           </p>
 
@@ -81,20 +81,20 @@ export default function Login() {
               >
                 <div
                   className="flex-shrink-0 flex items-center justify-center rounded-lg p-2"
-                  style={{ color: '#004ac6', backgroundColor: 'rgba(0,74,198,0.15)' }}
+                  style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(0,74,198,0.15)' }}
                 >
                   <Icon size={18} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#e6edf3', marginBottom: 2 }}>{title}</p>
-                  <p style={{ fontSize: 12, color: '#8b949e', lineHeight: 1.5 }}>{desc}</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.90)', marginBottom: 2 }}>{title}</p>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>{desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="relative z-10" style={{ fontSize: 11, color: '#30363d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        <p className="relative z-10" style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           CBH V2.3 &copy; 2026
         </p>
       </div>

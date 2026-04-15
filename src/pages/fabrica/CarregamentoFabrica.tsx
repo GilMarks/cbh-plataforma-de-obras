@@ -3,8 +3,9 @@ import { Check, Truck } from 'lucide-react';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
 import PlanoCarregamentoResumo from '../../components/shared/PlanoCarregamentoResumo';
+import PlantaBaixaSVG from '../../components/shared/PlantaBaixaSVG';
 import { carregamentos as carregamentosApi } from '../../lib/api';
-import { listarEtapasOperacionaisCarregamento, totalCamadasNoPlano } from '../../lib/carregamento';
+import { inferModoCarregamento, listarEtapasOperacionaisCarregamento, totalCamadasNoPlano } from '../../lib/carregamento';
 import type { Carregamento } from '../../lib/types';
 
 export default function CarregamentoFabrica() {
@@ -43,8 +44,10 @@ export default function CarregamentoFabrica() {
             const etapas = listarEtapasOperacionaisCarregamento(carregamento.paineis);
             const totalCamadas = totalCamadasNoPlano(carregamento.paineis);
 
+            const modo = inferModoCarregamento(carregamento.paineis);
+
             return (
-              <div key={carregamento.id} className="border border-border rounded-2xl bg-white" style={{ padding: '24px' }}>
+              <div key={carregamento.id} className="border border-border rounded-2xl bg-surface-container-lowest" style={{ padding: '24px' }}>
                 <div className="flex items-start justify-between gap-4 flex-wrap" style={{ marginBottom: '18px' }}>
                   <div>
                     <div className="flex items-center gap-3 flex-wrap">
@@ -72,6 +75,18 @@ export default function CarregamentoFabrica() {
                       {totalCamadas} camadas
                     </span>
                   </div>
+                </div>
+
+                {/* Vista top-down do layout */}
+                <div className="mb-5 overflow-x-auto rounded-xl border border-border bg-surface-container-low p-4">
+                  <p className="mb-3 font-mono text-[10px] font-extrabold uppercase tracking-widest text-text-muted">
+                    Layout do carregamento — vista top-down
+                  </p>
+                  <PlantaBaixaSVG
+                    paineis={carregamento.paineis}
+                    veiculo={modo}
+                    compact
+                  />
                 </div>
 
                 <PlanoCarregamentoResumo

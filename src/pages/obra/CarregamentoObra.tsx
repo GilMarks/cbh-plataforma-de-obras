@@ -1,319 +1,235 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Boxes, ChevronDown, Plus, Truck, X } from 'lucide-react';
+import { Boxes, Plus, Truck, X, LayoutTemplate } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
+import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
 import SimuladorCarregamento from '../../components/shared/SimuladorCarregamento';
+import PlantaBaixaSVG from '../../components/shared/PlantaBaixaSVG';
 import { carregamentos as carregamentosApi, obras as obrasApi, solicitacoes as solicitacoesApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
 import {
   agruparPlanoCarregamento,
   carregamentoReservaEstoque,
-  criarResumoSequenciaCarregamento,
   criarSequenciaMontagem,
-  formatMeters,
   formatDimensaoPainel,
-  getMaxComprimentoCamada,
+  inferModoCarregamento,
   parseDimensaoPainel,
 } from '../../lib/carregamento';
 import type { PainelEstoqueCarregamento } from '../../lib/carregamento';
 import type { Carregamento, Obra, PainelCarregamento, Solicitacao } from '../../lib/types';
 
-const PREVIEW_PIXELS_PER_METER = 24;
-const LABEL_CLASS = 'text-xs font-semibold uppercase tracking-wider text-slate-500';
-const NUMERIC_CLASS = 'tabular-nums tracking-tight font-medium';
-
-function getPainelComp(painel: PainelCarregamento) {
-  if (typeof painel.comp === 'number') return painel.comp;
-  return parseDimensaoPainel(painel.dimensao).comp;
+function getDisplayStatus(c: Carregamento): string {
+  if (c.status === 'Entregue') return 'Entregue';
+  if (c.status === 'Carregado') return 'Em Rota';
+  if (c.statusAutorizacao === 'Aguardando') return 'Pendente';
+  return c.status;
 }
 
-function getDisplayStatus(carregamento: Carregamento) {
-  if (carregamento.status === 'Entregue') {
-    return {
-      label: 'Entregue',
-      className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    };
-  }
-
-  if (carregamento.status === 'Carregado') {
-    return {
-      label: 'Em Rota',
-      className: 'border-blue-200 bg-blue-50 text-blue-700',
-    };
-  }
-
-  if (carregamento.statusAutorizacao === 'Aguardando') {
-    return {
-      label: 'Pendente',
-      className: 'border-amber-200 bg-amber-50 text-amber-700',
-    };
-  }
-
-  return {
-    label: carregamento.status,
-    className: 'border-slate-200 bg-slate-50 text-slate-700',
-  };
-}
-
-function getCapacidadeResumo(carregamento: Carregamento) {
-  const plano = agruparPlanoCarregamento(carregamento.paineis);
-  const maxLayerLength = getMaxComprimentoCamada(carregamento.paineis);
-  const totalMeters = carregamento.paineis.reduce((total, painel) => total + getPainelComp(painel), 0);
+function getCapacidadeResumo(c: Carregamento) {
+  const plano = agruparPlanoCarregamento(c.paineis);
   const profundidade =
     plano.modo === 'Munck'
       ? Math.max(plano.esquerdo.length, plano.direito.length, 1)
       : Math.max(plano.prancha.length, 1);
+
+  const totalMeters = c.paineis.reduce((sum, p) => {
+    const comp = typeof p.comp === 'number' ? p.comp : parseDimensaoPainel(p.dimensao).comp;
+    return sum + comp;
+  }, 0);
+
   const capacidadeTotal =
-    plano.modo === 'Munck' ? profundidade * maxLayerLength * 2 : profundidade * maxLayerLength;
-  const capacidadePercentual = capacidadeTotal === 0 ? 0 : Math.round((totalMeters / capacidadeTotal) * 100);
+    plano.modo === 'Munck' ? profundidade * plano.maxComp * 2 : profundidade * plano.maxComp;
 
   return {
     ...plano,
-    totalMeters,
     profundidade,
-    maxLayerLength,
-    capacidadePercentual: Math.max(0, Math.min(capacidadePercentual, 100)),
-    totalEsquerdo: plano.esquerdo.reduce((total, camada) => total + camada.itens.length, 0),
-    totalDireito: plano.direito.reduce((total, camada) => total + camada.itens.length, 0),
-    totalPrancha: plano.prancha.reduce((total, camada) => total + camada.itens.length, 0),
+    pct: capacidadeTotal === 0 ? 0 : Math.min(Math.round((totalMeters / capacidadeTotal) * 100), 100),
+    totalEsquerdo: plano.esquerdo.reduce((s, cam) => s + cam.itens.length, 0),
+    totalDireito: plano.direito.reduce((s, cam) => s + cam.itens.length, 0),
+    totalPrancha: plano.prancha.reduce((s, cam) => s + cam.itens.length, 0),
   };
 }
 
-
-function CompactTruckPreview({ carregamento }: { carregamento: Carregamento }) {
-  const resumo = getCapacidadeResumo(carregamento);
-  const columnWidthPx = 14;
-  const stageHeight = resumo.maxLayerLength * PREVIEW_PIXELS_PER_METER;
-  const renderMiniColumn = (
-    items: typeof resumo.esquerdo[number]['itens'],
-    key: string,
-    borderClass: string,
-  ) => (
-    <div
-      key={key}
-      className={borderClass}
-      style={{ width: `${columnWidthPx}px`, minWidth: `${columnWidthPx}px`, height: `${stageHeight}px` }}
-    >
-      <div className="flex h-full w-full flex-col-reverse items-center justify-start gap-px">
-        {items.map(painel => (
-          <div
-            key={painel.itemId ?? `${painel.solicitacaoId}-${painel.posicaoCarregamento}`}
-            className="w-full rounded-sm border border-slate-400 bg-slate-200"
-            style={{ height: `${getPainelComp(painel) * PREVIEW_PIXELS_PER_METER}px` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-end">
-        <span className={`text-xs text-slate-500 ${NUMERIC_CLASS}`}>
-          Total: <strong className="text-slate-700">{formatMeters(resumo.totalMeters)}</strong>
-        </span>
-      </div>
-
-      <div className="max-h-40 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
-        {resumo.modo === 'Munck' ? (
-          <div
-            className="grid items-start gap-3 overflow-x-auto"
-            style={{
-              gridTemplateColumns: `${Math.max(resumo.esquerdo.length, 2) * columnWidthPx}px 12px ${Math.max(resumo.direito.length, 2) * columnWidthPx}px`,
-            }}
-          >
-            <div className="rounded-md border border-slate-200 bg-white px-2 py-2">
-              <div className={`mb-2 text-center text-[10px] text-slate-500 ${NUMERIC_CLASS}`}>E {formatMeters(resumo.totalMeters ? resumo.esquerdo[0]?.comprimentoTotal ?? 0 : 0)}</div>
-              <div className="flex h-full flex-row-reverse justify-start">
-                {[...resumo.esquerdo].reverse().map((layer, index) =>
-                  renderMiniColumn(layer.itens, `preview-left-${index}`, 'border-r border-slate-300'),
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center self-stretch">
-              <div className="w-3 rounded-full bg-amber-400" style={{ minHeight: `${stageHeight}px`, height: `${stageHeight}px`, maxHeight: '150px' }} />
-            </div>
-
-            <div className="rounded-md border border-slate-200 bg-white px-2 py-2">
-              <div className={`mb-2 text-center text-[10px] text-slate-500 ${NUMERIC_CLASS}`}>D {formatMeters(resumo.totalMeters ? resumo.direito[0]?.comprimentoTotal ?? 0 : 0)}</div>
-              <div className="flex h-full justify-start">
-                {[...resumo.direito].reverse().map((layer, index) =>
-                  renderMiniColumn(layer.itens, `preview-right-${index}`, 'border-l border-slate-300'),
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-md border border-slate-200 bg-white p-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <div className={LABEL_CLASS}>Prancha</div>
-                <p className="mt-1 text-xs text-slate-600">Cabecalho a esquerda e descarregamento pela traseira.</p>
-              </div>
-              <div className={`text-xs text-slate-700 ${NUMERIC_CLASS}`}>{formatMeters(resumo.maxLayerLength)} por faixa</div>
-            </div>
-
-            <div className="flex items-start gap-3 overflow-x-auto">
-              <div className="mt-1 h-8 w-14 rounded-l-full rounded-r-md border border-slate-300 bg-slate-100" />
-              <div className="flex rounded-md border border-slate-200 bg-slate-50 px-2 py-2">
-                {resumo.prancha.map((layer, index) =>
-                  renderMiniColumn(layer.itens, `preview-prancha-${index}`, 'border-l border-slate-300'),
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+function pctColor(pct: number) {
+  if (pct >= 90) return '#dc2626';
+  if (pct >= 70) return '#d97706';
+  return '#2563eb';
 }
 
-function CapacityColor(percent: number) {
-  if (percent >= 90) return 'bg-red-500';
-  if (percent >= 70) return 'bg-amber-500';
-  return 'bg-blue-500';
-}
-
-function CarregamentoAccordionRow({ carregamento }: { carregamento: Carregamento }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [seqExpanded, setSeqExpanded] = useState(false);
+/* ── Layout Modal ── */
+function LayoutModal({ carregamento, onClose }: { carregamento: Carregamento; onClose: () => void }) {
   const resumo = getCapacidadeResumo(carregamento);
-  const resumoSequencia = criarResumoSequenciaCarregamento(carregamento.paineis);
-  const status = getDisplayStatus(carregamento);
-  const headerId = `carregamento-header-${carregamento.id}`;
-  const pct = resumo.capacidadePercentual;
+  const modo = inferModoCarregamento(carregamento.paineis);
+
+  const dist =
+    modo === 'Munck'
+      ? `Esq ${resumo.totalEsquerdo} · Dir ${resumo.totalDireito}`
+      : `${resumo.totalPrancha} painéis na prancha`;
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   return (
     <div
-      className={`overflow-hidden rounded-xl border bg-white transition-all duration-150 ${
-        isExpanded ? 'border-slate-300 shadow-sm' : 'border-slate-200 hover:bg-slate-50/50 hover:border-slate-300 hover:shadow-sm'
-      }`}
-      role="region"
-      aria-labelledby={headerId}
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ zIndex: 200, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', padding: '24px' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      {/* ── Header clicável ── */}
-      <button
-        type="button"
-        id={headerId}
-        onClick={() => setIsExpanded(v => !v)}
-        aria-expanded={isExpanded}
-        aria-label={`Carregamento #${carregamento.id} — ${carregamento.obraNome}, ${status.label}. ${isExpanded ? 'Recolher' : 'Expandir'} detalhes.`}
-        className="w-full px-5 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="bg-surface-container-lowest w-full overflow-hidden"
+        style={{ maxWidth: '760px', borderRadius: '16px', border: '1px solid var(--color-border)', boxShadow: '0px 8px 8px -4px rgba(16,24,40,0.03), 0px 20px 24px -4px rgba(16,24,40,0.08)' }}
       >
-        <div className="flex items-center gap-3">
-          {/* ID */}
-          <span className="shrink-0 font-mono text-xs font-bold text-slate-400">#{carregamento.id}</span>
-
-          {/* Nome + status */}
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate font-semibold text-slate-900">{carregamento.obraNome}</span>
-              <span
-                className={`inline-flex shrink-0 items-center rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${status.className}`}
-                aria-label={`Status: ${status.label}`}
-              >
-                {status.label}
-              </span>
+        {/* Header */}
+        <div className="flex items-start justify-between" style={{ padding: '24px 28px', borderBottom: '1px solid var(--color-border)' }}>
+          <div>
+            <div className="flex items-center gap-2" style={{ marginBottom: '4px' }}>
+              <span className="font-mono text-text-muted" style={{ fontSize: '12px' }}>#{carregamento.id}</span>
+              <StatusBadge status={getDisplayStatus(carregamento)} />
             </div>
-            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
-              <span>{carregamento.veiculo}</span>
-              <span aria-hidden="true">·</span>
-              <time dateTime={carregamento.dataSolicitacao || undefined}>{carregamento.dataSolicitacao || '-'}</time>
-              <span aria-hidden="true">·</span>
-              <span>{carregamento.paineis.length} painéis</span>
-            </div>
+            <h2 className="font-bold text-text-primary" style={{ fontSize: '18px' }}>
+              {carregamento.obraNome}
+            </h2>
           </div>
-
-          {/* Capacidade — cor contextual */}
-          <div
-            className="hidden shrink-0 items-center gap-2 sm:flex"
-            aria-label={`Capacidade: ${pct}%`}
+          <button
+            onClick={onClose}
+            className="text-text-muted hover:text-text-primary transition-colors rounded-lg flex items-center justify-center"
+            style={{ width: '36px', height: '36px' }}
           >
-            <div
-              className="h-1 w-16 overflow-hidden rounded-full bg-slate-100"
-              role="progressbar"
-              aria-valuenow={pct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className={`h-full rounded-full transition-all ${CapacityColor(pct)}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <span className={`font-mono text-xs ${pct >= 90 ? 'font-bold text-red-500' : pct >= 70 ? 'font-bold text-amber-500' : 'text-slate-400'}`}>
-              {pct}%
-            </span>
-          </div>
-
-          {/* Chevron */}
-          <ChevronDown
-            size={15}
-            aria-hidden="true"
-            className={`shrink-0 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-          />
+            <X size={18} />
+          </button>
         </div>
-      </button>
 
-      {/* ── Corpo expansível ── */}
-      {isExpanded && (
-        <div className="border-t border-slate-100">
-          {/* KPIs inline */}
-          <dl className="flex flex-wrap items-center divide-x divide-slate-100 px-5 py-3">
-            {([
-              { label: 'Painéis', value: String(carregamento.paineis.length) },
-              { label: 'Camadas', value: String(resumo.profundidade) },
-              {
-                label: 'Distribuição',
-                value: resumo.modo === 'Munck'
-                  ? `E ${resumo.totalEsquerdo} · D ${resumo.totalDireito}`
-                  : `${resumo.totalPrancha} prancha`,
-              },
-              { label: 'Solicitante', value: carregamento.solicitante || '-' },
-            ] as { label: string; value: string }[]).map(item => (
-              <div key={item.label} className="px-4 py-1 first:pl-0">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{item.label}</dt>
-                <dd className="mt-0.5 truncate font-mono text-sm font-bold text-slate-800">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          {/* Sequência */}
-          <div className="border-t border-slate-100 px-5 py-4">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sequência de montagem</p>
-              {resumoSequencia.length > 80 && (
-                <button
-                  type="button"
-                  onClick={() => setSeqExpanded(v => !v)}
-                  className="text-[10px] font-bold text-blue-500 hover:text-blue-700 focus-visible:outline-none"
-                >
-                  {seqExpanded ? 'Recolher' : 'Ver tudo'}
-                </button>
-              )}
+        {/* Métricas */}
+        <div className="grid grid-cols-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+          {[
+            { label: 'Veículo', value: carregamento.veiculo },
+            { label: 'Painéis', value: String(carregamento.paineis.length) },
+            { label: 'Distribuição', value: dist },
+            { label: 'Ocupação', value: `${resumo.pct}%` },
+          ].map(item => (
+            <div key={item.label} style={{ padding: '16px 20px', borderRight: '1px solid var(--color-border)' }} className="last:border-r-0">
+              <p className="text-text-muted font-medium" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                {item.label}
+              </p>
+              <p className="font-semibold text-text-primary" style={{ fontSize: '14px' }}>
+                {item.value}
+              </p>
             </div>
-            <p className={`text-sm leading-relaxed text-slate-600 ${seqExpanded ? '' : 'line-clamp-1'}`}>
-              {resumoSequencia}
-            </p>
-          </div>
+          ))}
+        </div>
 
-          {/* Planta baixa */}
-          <div className="border-t border-slate-100 px-5 py-4">
-            <div className="max-h-48 overflow-auto rounded-lg border border-slate-100 p-3">
-              <CompactTruckPreview carregamento={carregamento} />
-            </div>
+        {/* SVG */}
+        <div style={{ padding: '24px 28px' }}>
+          <p className="font-medium text-text-muted" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
+            Planta baixa do carregamento
+          </p>
+          <div className="overflow-x-auto">
+            <PlantaBaixaSVG
+              paineis={carregamento.paineis}
+              veiculo={modo}
+              compact={false}
+            />
           </div>
         </div>
-      )}
+
+        {/* Data + solicitante */}
+        <div className="flex items-center justify-between" style={{ padding: '12px 28px', borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+          <span className="text-text-muted" style={{ fontSize: '12px' }}>
+            Solicitado por <strong className="text-text-secondary">{carregamento.solicitante || '—'}</strong>
+          </span>
+          <span className="text-text-muted" style={{ fontSize: '12px' }}>
+            {carregamento.dataSolicitacao || '—'}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
 
+/* ── Card de carregamento ── */
+function CarregamentoCard({ carregamento, onVerLayout }: { carregamento: Carregamento; onVerLayout: () => void }) {
+  const resumo = getCapacidadeResumo(carregamento);
+  const modo = inferModoCarregamento(carregamento.paineis);
+  const status = getDisplayStatus(carregamento);
+  const color = pctColor(resumo.pct);
+
+  const dist =
+    modo === 'Munck'
+      ? `E ${resumo.totalEsquerdo} · D ${resumo.totalDireito}`
+      : `${resumo.totalPrancha} prancha`;
+
+  return (
+    <div
+      className="bg-surface-container-lowest flex items-center gap-6"
+      style={{
+        padding: '18px 24px',
+        borderRadius: '12px',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0px 1px 2px rgba(16,24,40,0.05)',
+      }}
+    >
+      {/* ID + nome + status */}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="flex items-center gap-2" style={{ marginBottom: '4px' }}>
+          <span className="font-mono text-text-muted" style={{ fontSize: '11px' }}>#{carregamento.id}</span>
+          <StatusBadge status={status} />
+        </div>
+        <p className="font-semibold text-text-primary truncate" style={{ fontSize: '15px' }}>
+          {carregamento.obraNome}
+        </p>
+        <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '2px' }}>
+          {carregamento.veiculo} · {carregamento.dataSolicitacao || '—'} · {carregamento.paineis.length} painéis
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="hidden sm:flex items-center gap-6 shrink-0">
+        <div style={{ textAlign: 'center' }}>
+          <p className="text-text-muted font-medium" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Camadas</p>
+          <p className="font-semibold text-text-primary" style={{ fontSize: '15px', marginTop: '2px' }}>{resumo.profundidade}</p>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p className="text-text-muted font-medium" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distribuição</p>
+          <p className="font-semibold text-text-primary" style={{ fontSize: '15px', marginTop: '2px' }}>{dist}</p>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p className="text-text-muted font-medium" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ocupação</p>
+          <div className="flex items-center gap-2" style={{ marginTop: '4px' }}>
+            <div style={{ width: '48px', height: '4px', borderRadius: '2px', background: 'var(--color-border)', overflow: 'hidden' }}>
+              <div style={{ width: `${resumo.pct}%`, height: '100%', background: color, borderRadius: '2px' }} />
+            </div>
+            <span className="font-semibold" style={{ fontSize: '13px', color }}>{resumo.pct}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Ação */}
+      <button
+        onClick={onVerLayout}
+        className="shrink-0 flex items-center gap-1.5 text-primary hover:bg-primary-bg transition-colors rounded-lg font-medium"
+        style={{ fontSize: '13px', padding: '8px 14px', border: '1px solid var(--color-primary-light)' }}
+      >
+        <LayoutTemplate size={14} />
+        Ver layout
+      </button>
+    </div>
+  );
+}
+
+/* ── Page ── */
 export default function CarregamentoObra() {
   const [carregamentos, setCarregamentos] = useState<Carregamento[]>([]);
   const [obras, setObras] = useState<Obra[]>([]);
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [layoutCarregamento, setLayoutCarregamento] = useState<Carregamento | null>(null);
+  const [formObraId, setFormObraId] = useState('');
+  const [formVeiculo, setFormVeiculo] = useState<'Munck' | 'Carreta'>('Munck');
   const user = getCurrentUser();
 
   useEffect(() => {
@@ -321,10 +237,6 @@ export default function CarregamentoObra() {
     obrasApi.listar().then(setObras).catch(() => {});
     solicitacoesApi.listar({ statusAutorizacao: 'Autorizado' }).then(setSolicitacoes).catch(() => {});
   }, []);
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [formObraId, setFormObraId] = useState('');
-  const [formVeiculo, setFormVeiculo] = useState<'Munck' | 'Carreta'>('Munck');
 
   const refresh = () => carregamentosApi.listar().then(setCarregamentos).catch(() => {});
 
@@ -335,82 +247,66 @@ export default function CarregamentoObra() {
   };
 
   const obraSelecionada = useMemo(
-    () => obras.find(obra => obra.id === Number(formObraId)) ?? null,
+    () => obras.find(o => o.id === Number(formObraId)) ?? null,
     [formObraId, obras],
   );
 
   const paineisReservadosPorSolicitacao = useMemo(() => {
-    const contagem = new Map<number, number>();
-
-    carregamentos.forEach(carregamento => {
-      if (!carregamentoReservaEstoque(carregamento)) return;
-
-      carregamento.paineis.forEach(painel => {
-        if (painel.tipo !== 'Painel') return;
-        contagem.set(painel.solicitacaoId, (contagem.get(painel.solicitacaoId) ?? 0) + 1);
+    const map = new Map<number, number>();
+    carregamentos.forEach(c => {
+      if (!carregamentoReservaEstoque(c)) return;
+      c.paineis.forEach(p => {
+        if (p.tipo !== 'Painel') return;
+        map.set(p.solicitacaoId, (map.get(p.solicitacaoId) ?? 0) + 1);
       });
     });
-
-    return contagem;
+    return map;
   }, [carregamentos]);
 
   const disponibilidadePorSolicitacao = useMemo(() => {
     if (!formObraId) return [];
-
     return solicitacoes
-      .filter(solicitacao => solicitacao.obraId === Number(formObraId) && solicitacao.fabricadoPainel > 0)
-      .map(solicitacao => {
-        const reservado = paineisReservadosPorSolicitacao.get(solicitacao.id) ?? 0;
-        const disponivel = Math.max(solicitacao.fabricadoPainel - reservado, 0);
+      .filter(s => s.obraId === Number(formObraId) && s.fabricadoPainel > 0)
+      .map(s => {
+        const reservado = paineisReservadosPorSolicitacao.get(s.id) ?? 0;
         return {
-          solicitacaoId: solicitacao.id,
-          dimensao: formatDimensaoPainel(solicitacao.painelComp, solicitacao.painelAlt),
-          tipoPainel: solicitacao.tipoPainel,
-          fabricado: solicitacao.fabricadoPainel,
+          solicitacaoId: s.id,
+          dimensao: formatDimensaoPainel(s.painelComp, s.painelAlt),
+          tipoPainel: s.tipoPainel,
+          fabricado: s.fabricadoPainel,
           reservado,
-          disponivel,
+          disponivel: Math.max(s.fabricadoPainel - reservado, 0),
         };
       });
   }, [formObraId, paineisReservadosPorSolicitacao, solicitacoes]);
 
   const availablePanels = useMemo<PainelEstoqueCarregamento[]>(() => {
     return disponibilidadePorSolicitacao.flatMap(item => {
-      const dimensao = item.dimensao;
-      const { comp, alt } = parseDimensaoPainel(dimensao);
-
-      return Array.from({ length: item.disponivel }, (_, index) => {
-        const numeroPainel = item.reservado + index + 1;
-        return {
-          itemId: `sol-${item.solicitacaoId}-painel-${numeroPainel}`,
-          codigo: `PA-${String(item.solicitacaoId).padStart(2, '0')}-${String(numeroPainel).padStart(3, '0')}`,
-          solicitacaoId: item.solicitacaoId,
-          tipo: 'Painel',
-          dimensao,
-          comp,
-          alt,
-        };
-      });
+      const { comp, alt } = parseDimensaoPainel(item.dimensao);
+      return Array.from({ length: item.disponivel }, (_, i) => ({
+        itemId: `sol-${item.solicitacaoId}-painel-${item.reservado + i + 1}`,
+        codigo: `PA-${String(item.solicitacaoId).padStart(2, '0')}-${String(item.reservado + i + 1).padStart(3, '0')}`,
+        solicitacaoId: item.solicitacaoId,
+        tipo: 'Painel' as const,
+        dimensao: item.dimensao,
+        comp,
+        alt,
+      }));
     });
   }, [disponibilidadePorSolicitacao]);
 
-  const estoqueResumo = useMemo(() => {
-    return disponibilidadePorSolicitacao.reduce(
-      (total, item) => ({
-        fabricado: total.fabricado + item.fabricado,
-        reservado: total.reservado + item.reservado,
-        disponivel: total.disponivel + item.disponivel,
-      }),
+  const estoqueResumo = useMemo(
+    () => disponibilidadePorSolicitacao.reduce(
+      (acc, item) => ({ fabricado: acc.fabricado + item.fabricado, reservado: acc.reservado + item.reservado, disponivel: acc.disponivel + item.disponivel }),
       { fabricado: 0, reservado: 0, disponivel: 0 },
-    );
-  }, [disponibilidadePorSolicitacao]);
-
-  const simulatorResetKey = formObraId;
+    ),
+    [disponibilidadePorSolicitacao],
+  );
 
   const handleCriar = (plano: PainelCarregamento[]) => {
     if (!formObraId || plano.length === 0) return;
-    const obra = obras.find(item => item.id === Number(formObraId));
+    const obra = obras.find(o => o.id === Number(formObraId));
     if (!obra) return;
-
     carregamentosApi.criar({
       obraId: obra.id,
       obraNome: obra.nome,
@@ -426,251 +322,218 @@ export default function CarregamentoObra() {
       dataExecucao: '',
       status: 'Pendente',
     }).then(() => refresh()).catch(() => {});
-
     closeModal();
   };
 
-  const totalCarregamentos = carregamentos.length;
-  const aguardandoExecucao = carregamentos.filter(
-    carregamento => carregamento.status === 'Pendente' || carregamento.status === 'Autorizado' || carregamento.status === 'Em Carregamento',
-  ).length;
+  // KPIs
   const totalEstoqueLivre = useMemo(
-    () =>
-      solicitacoes.reduce((total, solicitacao) => {
-        const reservado = paineisReservadosPorSolicitacao.get(solicitacao.id) ?? 0;
-        return total + Math.max(solicitacao.fabricadoPainel - reservado, 0);
-      }, 0),
+    () => solicitacoes.reduce((sum, s) => sum + Math.max(s.fabricadoPainel - (paineisReservadosPorSolicitacao.get(s.id) ?? 0), 0), 0),
     [paineisReservadosPorSolicitacao, solicitacoes],
   );
   const obrasComEstoque = useMemo(() => {
-    const obrasDisponiveis = new Set<number>();
-
-    solicitacoes.forEach(solicitacao => {
-      const reservado = paineisReservadosPorSolicitacao.get(solicitacao.id) ?? 0;
-      if (solicitacao.fabricadoPainel - reservado > 0) {
-        obrasDisponiveis.add(solicitacao.obraId);
-      }
+    const set = new Set<number>();
+    solicitacoes.forEach(s => {
+      if (s.fabricadoPainel - (paineisReservadosPorSolicitacao.get(s.id) ?? 0) > 0) set.add(s.obraId);
     });
-
-    return obrasDisponiveis.size;
+    return set.size;
   }, [paineisReservadosPorSolicitacao, solicitacoes]);
 
+  const aguardandoExecucao = carregamentos.filter(
+    c => c.status === 'Pendente' || c.status === 'Autorizado' || c.status === 'Em Carregamento',
+  ).length;
+
+  const sorted = [...carregamentos].sort((a, b) => b.id - a.id);
+
   return (
-    <div>
-      <p className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px', marginBottom: '8px' }}>
-        Obra
-      </p>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Truck size={28} className="text-primary" />
-          <h1 className="font-extrabold text-text-primary" style={{ fontSize: '28px', lineHeight: 1.2 }}>
-            Carregamento
-          </h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-text-muted font-semibold uppercase tracking-widest" style={{ fontSize: '11px', marginBottom: '6px' }}>
+            Obra
+          </p>
+          <div className="flex items-center gap-3">
+            <Truck size={24} className="text-primary" />
+            <h1 className="font-bold text-text-primary" style={{ fontSize: '26px', letterSpacing: '-0.02em' }}>
+              Carregamento
+            </h1>
+          </div>
+          <p className="text-text-muted" style={{ fontSize: '13px', marginTop: '6px' }}>
+            Planeje e acompanhe os planos de carregamento por obra.
+          </p>
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-primary text-white font-bold flex items-center gap-2 hover:opacity-90 shrink-0"
-          style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13px' }}
+          className="bg-primary text-white font-semibold flex items-center gap-2 hover:opacity-90 shrink-0 transition-opacity"
+          style={{ padding: '10px 18px', borderRadius: '8px', fontSize: '13px', boxShadow: '0px 1px 2px rgba(16,24,40,0.05)' }}
         >
-          <Plus size={16} /> Novo Plano de Carregamento
+          <Plus size={15} /> Novo plano
         </button>
       </div>
-      <p className="text-text-secondary" style={{ fontSize: '14px', marginTop: '6px' }}>
-        Monte o plano de carregamento por obra, obedecendo a sequencia de montagem e a ocupacao por camada.
-      </p>
 
-      <div className="grid-kpi" style={{ marginTop: '28px' }}>
-        <KPICard title="Total Carregamentos" value={totalCarregamentos} icon="Truck" color="primary" />
-        <KPICard title="Aguardando Execucao" value={aguardandoExecucao} icon="Clock" color="warning" />
-        <KPICard title="Paineis Livres" value={totalEstoqueLivre} icon="Boxes" color="success" />
-        <KPICard title="Obras com Estoque" value={obrasComEstoque} icon="HardHat" color="primary" />
+      {/* KPIs */}
+      <div className="grid-kpi">
+        <KPICard title="Total" value={carregamentos.length} icon="Truck" color="primary" />
+        <KPICard title="Aguardando" value={aguardandoExecucao} icon="Clock" color="warning" />
+        <KPICard title="Painéis livres" value={totalEstoqueLivre} icon="Boxes" color="success" />
+        <KPICard title="Obras c/ estoque" value={obrasComEstoque} icon="HardHat" color="primary" />
       </div>
 
-      <div className="flex flex-col gap-3" style={{ marginTop: '28px' }}>
-        {carregamentos.length === 0 ? (
+      {/* Lista */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {sorted.length === 0 ? (
           <EmptyState message="Nenhum carregamento registrado" icon="Truck" />
         ) : (
-          [...carregamentos]
-            .sort((a, b) => b.id - a.id)
-            .map(carregamento => <CarregamentoAccordionRow key={carregamento.id} carregamento={carregamento} />)
+          sorted.map(c => (
+            <CarregamentoCard
+              key={c.id}
+              carregamento={c}
+              onVerLayout={() => setLayoutCarregamento(c)}
+            />
+          ))
         )}
       </div>
 
+      {/* Modal layout */}
+      {layoutCarregamento && (
+        <LayoutModal
+          carregamento={layoutCarregamento}
+          onClose={() => setLayoutCarregamento(null)}
+        />
+      )}
+
+      {/* Modal novo plano */}
       {modalOpen && (
         <div
           className="fixed inset-0 flex items-center justify-center"
-          style={{ zIndex: 'var(--z-modal)', background: 'rgba(15, 23, 42, 0.36)', padding: '16px' }}
-          aria-hidden="true"
+          style={{ zIndex: 100, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', padding: '16px' }}
           onClick={e => { if (e.target === e.currentTarget) closeModal(); }}
         >
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="modal-titulo"
-            className="modal-card w-full overflow-y-auto"
-            style={{ maxWidth: '1600px', maxHeight: '94vh', padding: '28px 32px' }}
-            onKeyDown={e => { if (e.key === 'Escape') closeModal(); }}
+            className="bg-surface-container-lowest w-full overflow-y-auto"
+            style={{ maxWidth: '1600px', maxHeight: '94vh', borderRadius: '16px', border: '1px solid var(--color-border)', padding: '28px 32px', boxShadow: '0px 20px 24px -4px rgba(16,24,40,0.08)' }}
           >
             <div className="flex items-start justify-between gap-4" style={{ marginBottom: '24px' }}>
               <div>
-                <h2 id="modal-titulo" className="font-extrabold text-text-primary" style={{ fontSize: '24px' }}>
+                <h2 className="font-bold text-text-primary" style={{ fontSize: '20px', letterSpacing: '-0.01em' }}>
                   Novo plano de carregamento
                 </h2>
-                <p className="text-text-muted" style={{ fontSize: '13px', marginTop: '6px', lineHeight: 1.5 }}>
-                  Escolha a obra, confira o estoque fabricado e monte o plano com arrastar e soltar na mesma logica de montagem.
+                <p className="text-text-muted" style={{ fontSize: '13px', marginTop: '4px' }}>
+                  Selecione a obra e monte o plano com arrastar e soltar.
                 </p>
               </div>
-              <button onClick={closeModal} aria-label="Fechar modal" className="text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
-                <X size={20} aria-hidden="true" />
+              <button
+                onClick={closeModal}
+                className="text-text-muted hover:text-text-primary transition-colors rounded-lg flex items-center justify-center"
+                style={{ width: '36px', height: '36px', flexShrink: 0 }}
+              >
+                <X size={18} />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-              <div className="rounded-2xl border border-border bg-surface-container-low" style={{ padding: '20px' }}>
-                <p className="font-extrabold text-text-primary" style={{ fontSize: '15px', marginBottom: '16px' }}>
-                  Dados da solicitacao
-                </p>
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+              {/* Painel esquerdo */}
+              <div className="rounded-xl border border-border bg-surface-container-low" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p className="font-semibold text-text-primary" style={{ fontSize: '14px' }}>Dados da solicitação</p>
 
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <label htmlFor="select-obra" className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>
-                      Obra
-                    </label>
-                    <select
-                      id="select-obra"
-                      value={formObraId}
-                      onChange={event => setFormObraId(event.target.value)}
-                      aria-required="true"
-                      className="w-full bg-white border border-border"
-                      style={{ padding: '12px 16px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}
-                    >
-                      <option value="">Selecione a obra</option>
-                      {obras.map(obra => (
-                        <option key={obra.id} value={obra.id}>
-                          {obra.nome}
-                        </option>
-                      ))}
-                    </select>
+                <div>
+                  <label htmlFor="select-obra" className="text-text-muted font-medium" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+                    Obra
+                  </label>
+                  <select
+                    id="select-obra"
+                    value={formObraId}
+                    onChange={e => setFormObraId(e.target.value)}
+                    className="w-full bg-surface-container-lowest border border-border-light"
+                    style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px', color: 'var(--color-text-primary)' }}
+                  >
+                    <option value="">Selecione a obra</option>
+                    {obras.map(o => <option key={o.id} value={o.id}>{o.nome}</option>)}
+                  </select>
+                </div>
+
+                {obraSelecionada ? (
+                  <div className="rounded-lg border border-border bg-surface-container-lowest" style={{ padding: '14px' }}>
+                    <p className="font-semibold text-text-primary" style={{ fontSize: '13px' }}>{obraSelecionada.nome}</p>
+                    <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>{obraSelecionada.local}</p>
+                    {obraSelecionada.observacoes && (
+                      <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>{obraSelecionada.observacoes}</p>
+                    )}
                   </div>
+                ) : (
+                  <p className="text-text-muted" style={{ fontSize: '12px', padding: '12px', borderRadius: '8px', border: '1px dashed var(--color-border)', background: 'var(--color-surface-container-lowest)' }}>
+                    Selecione a obra para ver o estoque disponível.
+                  </p>
+                )}
 
-                  {obraSelecionada ? (
-                    <div className="rounded-2xl border border-border bg-white" style={{ padding: '16px' }}>
-                      <p className="font-extrabold text-text-primary" style={{ fontSize: '14px' }}>
-                        {obraSelecionada.nome}
-                      </p>
-                      <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '6px', lineHeight: 1.5 }}>
-                        {obraSelecionada.local}
-                      </p>
-                      <p className="text-text-secondary" style={{ fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
-                        Veiculo planejado: {formVeiculo}
-                      </p>
-                      {obraSelecionada.observacoes && (
-                        <p className="text-text-secondary" style={{ fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
-                          {obraSelecionada.observacoes}
-                        </p>
-                      )}
+                {formObraId && (
+                  <>
+                    {/* Mini KPIs estoque */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                      {[
+                        { label: 'Fabricado', value: estoqueResumo.fabricado },
+                        { label: 'Reservado', value: estoqueResumo.reservado },
+                        { label: 'Livres', value: estoqueResumo.disponivel },
+                      ].map(item => (
+                        <div key={item.label} className="rounded-lg border border-border bg-surface-container-lowest text-center" style={{ padding: '12px 8px' }}>
+                          <p className="text-text-muted font-medium" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.label}</p>
+                          <p className="font-bold text-text-primary" style={{ fontSize: '20px', marginTop: '4px' }}>{item.value}</p>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-border bg-white text-text-muted" style={{ padding: '16px', fontSize: '12px', lineHeight: 1.5 }}>
-                      Selecione a obra para liberar automaticamente o estoque fabricado correspondente.
-                    </div>
-                  )}
 
-                  {formObraId && (
-                    <>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                          gap: '10px',
-                        }}
-                      >
-                        <div className="rounded-xl border border-border bg-white" style={{ padding: '14px' }}>
-                          <p className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '10px' }}>
-                            Fabricado
-                          </p>
-                          <p className="font-extrabold text-text-primary" style={{ fontSize: '20px', marginTop: '8px' }}>
-                            {estoqueResumo.fabricado}
-                          </p>
-                        </div>
-                        <div className="rounded-xl border border-border bg-white" style={{ padding: '14px' }}>
-                          <p className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '10px' }}>
-                            Reservado
-                          </p>
-                          <p className="font-extrabold text-text-primary" style={{ fontSize: '20px', marginTop: '8px' }}>
-                            {estoqueResumo.reservado}
-                          </p>
-                        </div>
-                        <div className="rounded-xl border border-border bg-white" style={{ padding: '14px' }}>
-                          <p className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '10px' }}>
-                            Livres
-                          </p>
-                          <p className="font-extrabold text-text-primary" style={{ fontSize: '20px', marginTop: '8px' }}>
-                            {estoqueResumo.disponivel}
-                          </p>
-                        </div>
+                    {/* Estoque por dimensão */}
+                    <div className="rounded-lg border border-border bg-surface-container-lowest" style={{ padding: '14px' }}>
+                      <div className="flex items-center gap-2" style={{ marginBottom: '10px' }}>
+                        <Boxes size={13} className="text-primary" />
+                        <p className="font-semibold text-text-primary" style={{ fontSize: '13px' }}>Estoque por dimensão</p>
                       </div>
-
-                      <div className="rounded-2xl border border-border bg-white" style={{ padding: '16px' }}>
-                        <div className="flex items-center gap-2" style={{ marginBottom: '12px' }}>
-                          <Boxes size={16} className="text-primary" />
-                          <p className="font-extrabold text-text-primary" style={{ fontSize: '14px' }}>
-                            Estoque por dimensao
-                          </p>
-                        </div>
-
-                        {disponibilidadePorSolicitacao.length === 0 ? (
-                          <p className="text-text-muted" style={{ fontSize: '12px' }}>
-                            Nenhum painel fabricado e autorizado disponivel para esta obra.
-                          </p>
-                        ) : (
-                          <div className="flex flex-col gap-3">
-                            {disponibilidadePorSolicitacao.map(item => (
-                              <div key={item.solicitacaoId} className="rounded-xl border border-border bg-surface-container-low" style={{ padding: '12px' }}>
-                                <div className="flex items-start justify-between gap-3 flex-wrap">
-                                  <div>
-                                    <p className="font-bold text-text-primary" style={{ fontSize: '13px' }}>
-                                      {item.dimensao}
-                                    </p>
-                                    <p className="text-text-muted" style={{ fontSize: '11px', marginTop: '4px' }}>
-                                      Solicitacao #{item.solicitacaoId} - {item.tipoPainel}
-                                    </p>
-                                  </div>
-                                  <span
-                                    className="rounded-full border border-border bg-white text-text-muted"
-                                    style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 700 }}
-                                  >
-                                    {item.disponivel} livres
-                                  </span>
-                                </div>
-                                <p className="text-text-muted" style={{ fontSize: '11px', marginTop: '8px' }}>
-                                  Fabricado: {item.fabricado} - Reservado em outros carregamentos: {item.reservado}
+                      {disponibilidadePorSolicitacao.length === 0 ? (
+                        <p className="text-text-muted" style={{ fontSize: '12px' }}>Nenhum painel disponível.</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {disponibilidadePorSolicitacao.map(item => (
+                            <div key={item.solicitacaoId} className="flex items-center justify-between rounded-lg border border-border bg-surface-container-low" style={{ padding: '8px 12px', gap: '8px' }}>
+                              <div style={{ minWidth: 0 }}>
+                                <p className="font-semibold text-text-primary" style={{ fontSize: '13px' }}>{item.dimensao}</p>
+                                <p className="text-text-muted" style={{ fontSize: '11px', marginTop: '1px' }}>
+                                  {item.tipoPainel} · fab. {item.fabricado} · res. {item.reservado}
                                 </p>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
+                              <span
+                                className="shrink-0 font-semibold"
+                                style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', background: 'var(--color-success-bg)', color: 'var(--color-success-text)', whiteSpace: 'nowrap' }}
+                              >
+                                {item.disponivel} livres
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
+              {/* Simulador */}
               <div>
                 {!formObraId ? (
-                  <div className="rounded-2xl border border-dashed border-border bg-surface-container-lowest" style={{ padding: '42px 28px' }}>
-                    <EmptyState message="Selecione uma obra para abrir o simulador do carregamento" icon="Truck" />
+                  <div className="rounded-xl border border-dashed border-border bg-surface-container-lowest" style={{ padding: '60px 28px' }}>
+                    <EmptyState message="Selecione uma obra para abrir o simulador" icon="Truck" />
                   </div>
                 ) : availablePanels.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-border bg-surface-container-lowest" style={{ padding: '42px 28px' }}>
-                    <EmptyState message="Nenhum painel livre para montar um novo carregamento nesta obra" icon="Boxes" />
+                  <div className="rounded-xl border border-dashed border-border bg-surface-container-lowest" style={{ padding: '60px 28px' }}>
+                    <EmptyState message="Nenhum painel livre para esta obra" icon="Boxes" />
                   </div>
                 ) : (
                   <SimuladorCarregamento
                     availablePanels={availablePanels}
                     vehicle={formVeiculo}
                     onVehicleChange={setFormVeiculo}
-                    resetKey={simulatorResetKey}
+                    resetKey={formObraId}
                     onCancel={closeModal}
                     onConfirm={handleCriar}
                   />

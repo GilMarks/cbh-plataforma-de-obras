@@ -237,7 +237,7 @@ export default function ContasPagar() {
                       className={`transition-colors ${isSuccess ? '' : 'hover:bg-table-hover'}`}
                       style={{
                         borderBottom: idx < paginatedData.length - 1 ? '1px solid var(--color-border)' : 'none',
-                        backgroundColor: isSuccess ? 'rgba(22, 163, 74, 0.08)' : undefined,
+                        backgroundColor: isSuccess ? 'var(--color-success-bg)' : undefined,
                       }}
                     >
                       {/* CP */}
@@ -312,12 +312,11 @@ export default function ContasPagar() {
                         ) : (
                           <button
                             onClick={() => openPayModal(l)}
-                            className="font-bold text-white transition-all hover:opacity-90"
+                            className="font-bold text-white transition-all hover:opacity-90 bg-success"
                             style={{
                               padding: '8px 20px',
                               borderRadius: '8px',
                               fontSize: '12px',
-                              backgroundColor: '#16a34a',
                             }}
                           >
                             Pagar
@@ -543,7 +542,7 @@ export default function ContasPagar() {
                   padding: '12px 24px',
                   borderRadius: '10px',
                   fontSize: '13px',
-                  backgroundColor: isProcessing ? '#737686' : '#16a34a',
+                  backgroundColor: isProcessing ? 'var(--color-text-muted)' : 'var(--color-success)',
                 }}
               >
                 {isProcessing ? (

@@ -4,48 +4,51 @@
   /* Font */
   --font-sans: 'Inter', system-ui, sans-serif;
 
-  /* Primary — deep blueprint blue */
-  --color-primary: #004ac6;
-  --color-primary-dark: #003ea8;
-  --color-primary-light: #dbe1ff;
+  /* Primary — CBH Blue */
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-light: #dbeafe;
   --color-primary-bg: #eff6ff;
-  --color-primary-container: #2563eb;
-  --color-primary-fixed: #dbe1ff;
-  --color-primary-fixed-dim: #b4c5ff;
+  --color-primary-container: #3b82f6;
+  --color-primary-fixed: #dbeafe;
+  --color-primary-fixed-dim: #bfdbfe;
 
   /* Secondary */
-  --color-secondary: #515f74;
-  --color-secondary-container: #d5e3fd;
-  --color-secondary-fixed: #d5e3fd;
+  --color-secondary: #6b7280;
+  --color-secondary-container: #F2F4F7;
+  --color-secondary-fixed: #EAECF0;
 
-  /* Surface — flat planes, no elevation */
-  --color-surface: #f7f9fb;
-  --color-surface-container: #eceef0;
-  --color-surface-container-high: #e6e8ea;
-  --color-surface-container-low: #f2f4f6;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-bright: #f7f9fb;
-  --color-surface-dim: #d8dadc;
+  /* Surface — crisp white SaaS */
+  --color-surface: #F9FAFB;
+  --color-surface-container: #F2F4F7;
+  --color-surface-container-high: #EAECF0;
+  --color-surface-container-low: #F9FAFB;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-bright: #FFFFFF;
+  --color-surface-dim: #D0D5DD;
 
   /* Text */
-  --color-text-primary: #191c1e;
-  --color-text-secondary: #434655;
-  --color-text-muted: #737686;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #64748b;
 
-  /* Border — solid 1px strategy, no ghost/rgba */
-  --color-border: #e2e4e9;
+  /* Border */
+  --color-border: #e5e7eb;
   --color-border-light: #d1d5db;
 
   /* Outline */
-  --color-outline: #737686;
-  --color-outline-variant: #c3c6d7;
+  --color-outline: #9ca3af;
+  --color-outline-variant: #d1d5db;
 
   /* On Surface */
-  --color-on-surface: #191c1e;
-  --color-on-surface-variant: #434655;
-  --color-on-primary: #ffffff;
+  --color-on-surface: #111827;
+  --color-on-surface-variant: #6b7280;
+  --color-on-primary: #FFFFFF;
 
-  /* Semantic */
+  /* Sidebar brand square — always dark regardless of theme */
+  --color-sidebar-brand: #111827;
+
+  /* Semantic — CBH original */
   --color-success: #16a34a;
   --color-success-bright: #22c55e;
   --color-success-bg: #dcfce7;
@@ -71,28 +74,120 @@
   --color-tertiary: #943700;
   --color-tertiary-container: #bc4800;
 
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
+  --color-error: #dc2626;
+  --color-error-container: #fee2e2;
 
-  /* Chart colors — tokenized */
-  --color-chart-blue: #004ac6;
-  --color-chart-slate: #515f74;
+  /* Chart colors */
+  --color-chart-blue: #2563eb;
+  --color-chart-slate: #6b7280;
   --color-chart-green: #16a34a;
   --color-chart-red: #ef4444;
   --color-chart-amber: #f59e0b;
 
   /* Table */
-  --color-table-hover: #f8fafc;
+  --color-table-hover: #F9FAFB;
 
-  /* Border Radius — sharp, technical */
+  /* Border Radius — Untitled UI: tight, professional */
   --radius-sm: 6px;
-  --radius-input: 10px;
+  --radius-input: 8px;
   --radius-card: 12px;
   --radius-modal: 12px;
   --radius-pill: 999px;
 
-  /* Z-index — only for modals (layout uses flexbox, not stacking) */
+  /* Z-index */
   --z-modal: 100;
+}
+
+/* ── Dark mode token overrides ── */
+[data-theme="dark"] {
+  /* Primary — azul CBH mantém identidade, levemente mais vivo */
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-primary-light: #1e3a5f;
+  --color-primary-bg: #172554;
+  --color-primary-container: #60a5fa;
+  --color-primary-fixed: #1e3a5f;
+  --color-primary-fixed-dim: #1e40af;
+
+  /* Secondary */
+  --color-secondary: #9ca3af;
+  --color-secondary-container: #1f2937;
+  --color-secondary-fixed: #374151;
+
+  /* Surface */
+  --color-surface: #0f1117;
+  --color-surface-container: #161b27;
+  --color-surface-container-high: #1e2535;
+  --color-surface-container-low: #131720;
+  --color-surface-container-lowest: #1a2032;
+  --color-surface-bright: #1e2535;
+  --color-surface-dim: #374151;
+
+  /* Text */
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  /* Border */
+  --color-border: #1e2d3d;
+  --color-border-light: #243044;
+
+  /* Outline */
+  --color-outline: #475569;
+  --color-outline-variant: #334155;
+
+  /* On Surface */
+  --color-on-surface: #f1f5f9;
+  --color-on-surface-variant: #94a3b8;
+  --color-on-primary: #ffffff;
+
+  /* Sidebar brand square — always dark */
+  --color-sidebar-brand: #0f172a;
+
+  /* Semantic — ajustadas para contraste em fundo escuro */
+  --color-success: #22c55e;
+  --color-success-bright: #4ade80;
+  --color-success-bg: #052e16;
+  --color-success-text: #86efac;
+
+  --color-warning: #f59e0b;
+  --color-warning-bright: #fbbf24;
+  --color-warning-bg: #1c1002;
+  --color-warning-text: #fcd34d;
+
+  --color-danger: #ef4444;
+  --color-danger-bright: #f87171;
+  --color-danger-bg: #1f0707;
+  --color-danger-text: #fca5a5;
+
+  --color-info: #38bdf8;
+  --color-info-bg: #082f49;
+  --color-info-text: #7dd3fc;
+
+  --color-partial: #fb923c;
+  --color-partial-bg: #1c0a00;
+
+  /* Table */
+  --color-table-hover: #161b27;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .input-field {
+  background-color: var(--color-surface-container-lowest);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .modal-card {
+  box-shadow: 0px 8px 8px -4px rgba(0,0,0,0.3), 0px 20px 24px -4px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 
 * {
@@ -113,7 +208,6 @@ body {
   min-height: 100vh;
 }
 
-/* Blueprint typography: tabular numbers for all data */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
@@ -122,11 +216,11 @@ table {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Layout grids — responsive overrides ── */
+/* ── Layout grids ── */
 .grid-kpi {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  gap: 20px;
 }
 @media (max-width: 1280px) {
   .grid-kpi { grid-template-columns: repeat(2, 1fr); }
@@ -138,7 +232,7 @@ table {
 .grid-kpi-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 20px;
 }
 @media (max-width: 1024px) {
   .grid-kpi-3 { grid-template-columns: repeat(2, 1fr); }
@@ -150,7 +244,7 @@ table {
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 20px;
 }
 @media (max-width: 1280px) {
   .grid-cards { grid-template-columns: repeat(2, 1fr); }
@@ -162,13 +256,13 @@ table {
 .grid-charts {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 @media (max-width: 1024px) {
   .grid-charts { grid-template-columns: 1fr; }
 }
 
-/* Scrollbar — minimal */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -177,54 +271,55 @@ table {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #D0D5DD;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
 }
 
-/* Sidebar collapse transition */
+/* Sidebar transition */
 .sidebar-transition {
   transition: width 0.2s ease, min-width 0.2s ease;
 }
 
-/* Modal card — borders-only, no shadow */
+/* Modal */
 .modal-card {
   background-color: var(--color-surface-container-lowest);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: 12px;
+  box-shadow: 0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08);
 }
 
-/* Global input/select focus — applies where Tailwind focus classes are absent */
+/* Global input focus */
 input:not([type='checkbox']):not([type='radio']):focus,
 select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.08);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-/* Login — input field */
+/* Input field */
 .input-field {
   width: 100%;
   height: 44px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   border-radius: 8px;
   font-size: 14px;
   outline: none;
-  background-color: var(--color-surface-container-low);
+  background-color: #fff;
   color: var(--color-text-primary);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .input-field::placeholder { color: var(--color-text-muted); }
 .input-field:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-/* Login — submit button */
+/* Primary button */
 .btn-primary {
   display: flex;
   align-items: center;
@@ -234,16 +329,20 @@ textarea:focus {
   height: 44px;
   background-color: var(--color-primary);
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s, opacity 0.15s;
+  transition: background-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
 }
-.btn-primary:hover:not(:disabled) { background-color: var(--color-primary-dark); }
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  box-shadow: 0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 2px rgba(16, 24, 40, 0.06);
+}
 .btn-primary:disabled {
   background-color: var(--color-primary-dark);
-  opacity: 0.75;
+  opacity: 0.6;
   cursor: not-allowed;
 }

@@ -133,7 +133,7 @@ export default function StatusCompras() {
                   <div key={s} className="flex items-start" style={{ minWidth: '140px' }}>
                     <div className="bg-border" style={{ height: '2px', flex: 0, width: '20px', marginTop: '14px' }} />
                     <div className="flex flex-col items-center">
-                      <div className="rounded-full flex items-center justify-center font-bold text-text-muted border-2 border-border bg-white" style={{ width: '28px', height: '28px', fontSize: '12px' }}>
+                      <div className="rounded-full flex items-center justify-center font-bold text-text-muted border-2 border-border bg-surface-container-lowest" style={{ width: '28px', height: '28px', fontSize: '12px' }}>
                         {processo.timeline.length + i + 1}
                       </div>
                       <span className="text-text-muted text-center" style={{ fontSize: '11px', marginTop: '8px', maxWidth: '120px' }}>

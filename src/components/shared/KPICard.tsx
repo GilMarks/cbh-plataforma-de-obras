@@ -25,7 +25,7 @@ function resolveIcon(icon: ReactNode | string | undefined): ReactNode | null {
   if (!icon) return null;
   if (typeof icon === 'string') {
     const IconComponent = ICON_MAP[icon];
-    return IconComponent ? <IconComponent size={24} /> : null;
+    return IconComponent ? <IconComponent size={20} /> : null;
   }
   return icon as ReactNode;
 }
@@ -40,37 +40,42 @@ export default function KPICard({ title, value, icon, color = 'text-primary', su
 
   return (
     <div
-      className="bg-surface-container-lowest relative"
+      className="bg-surface-container-lowest"
       style={{
-        padding: '28px',
+        padding: '24px',
         borderRadius: '12px',
         border: '1px solid var(--color-border)',
+        boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)',
       }}
     >
       {resolvedIcon && (
         <div
-          className={`absolute opacity-40 ${colorClass}`}
-          style={{ top: '28px', right: '28px' }}
+          className={`inline-flex items-center justify-center rounded-lg mb-4 ${colorClass}`}
+          style={{
+            width: '40px',
+            height: '40px',
+            background: 'var(--color-primary-bg)',
+          }}
         >
           {resolvedIcon}
         </div>
       )}
       <p
-        className="font-extrabold text-text-muted uppercase tracking-widest"
-        style={{ fontSize: '11px', marginBottom: '12px' }}
+        className="font-semibold text-text-muted"
+        style={{ fontSize: '13px', marginBottom: '6px' }}
       >
         {title}
       </p>
       <p
-        className="font-extrabold text-text-primary tracking-tight tabular-nums"
-        style={{ fontSize: '28px', lineHeight: 1.1 }}
+        className="font-bold text-text-primary tabular-nums"
+        style={{ fontSize: '30px', lineHeight: 1.15, letterSpacing: '-0.02em' }}
       >
         {value}
       </p>
       {subtitle && (
         <p
           className="text-text-muted"
-          style={{ fontSize: '12px', marginTop: '8px' }}
+          style={{ fontSize: '13px', marginTop: '6px' }}
         >
           {subtitle}
         </p>

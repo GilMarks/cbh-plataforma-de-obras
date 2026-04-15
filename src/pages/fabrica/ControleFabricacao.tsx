@@ -324,8 +324,8 @@ export default function ControleFabricacao() {
                           Pendente
                         </span>
                         <p
-                          className="font-extrabold tabular-nums tracking-tight"
-                          style={{ fontSize: '22px', lineHeight: 1.1, color: '#16a34a' }}
+                          className="font-extrabold tabular-nums tracking-tight text-success"
+                          style={{ fontSize: '22px', lineHeight: 1.1 }}
                         >
                           +{qtd}
                         </p>
@@ -383,7 +383,7 @@ export default function ControleFabricacao() {
               <div
                 style={{
                   padding: '20px 24px',
-                  borderTop: '1px solid rgba(195, 198, 215, 0.15)',
+                  borderTop: '1px solid var(--color-border)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
@@ -443,7 +443,7 @@ export default function ControleFabricacao() {
                 <button
                   onClick={() => handleLancar(sol.id)}
                   disabled={qtd <= 0 || isLancado}
-                  className={`flex-1 flex items-center justify-center font-bold transition-all ${
+                  className={`flex-1 flex items-center justify-center font-bold transition-all bg-success ${
                     isLancado
                       ? 'text-white'
                       : qtd > 0
@@ -455,7 +455,6 @@ export default function ControleFabricacao() {
                     borderRadius: '10px',
                     fontSize: '14px',
                     gap: '8px',
-                    backgroundColor: isLancado ? '#16a34a' : '#16a34a',
                   }}
                 >
                   <Check size={18} />

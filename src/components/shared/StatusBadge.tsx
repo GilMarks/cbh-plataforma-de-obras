@@ -1,35 +1,40 @@
-const statusStyles: Record<string, string> = {
-  Pendente: 'bg-warning-bg text-warning-text border-warning-bg',
-  Fabricado: 'bg-success-bg text-success-text border-success-bg',
-  Parcial: 'bg-partial-bg text-partial border-partial-bg',
-  Aguardando: 'bg-info-bg text-info-text border-info-bg',
-  Autorizado: 'bg-success-bg text-success-text border-success-bg',
-  Negado: 'bg-danger-bg text-danger-text border-danger-bg',
-  Vencido: 'bg-danger-bg text-danger-text border-danger-bg',
-  Pago: 'bg-success-bg text-success-text border-success-bg',
-  SOLICITADO: 'bg-warning-bg text-warning-text border-warning-bg',
-  'EM ORCAMENTO': 'bg-info-bg text-info-text border-info-bg',
-  AGUARDANDO_AUTORIZACAO: 'bg-warning-bg text-warning-text border-warning-bg',
-  AUTORIZADO: 'bg-success-bg text-success-text border-success-bg',
-  NO_FINANCEIRO: 'bg-primary-bg text-primary border-primary-bg',
-  PAGO: 'bg-success-bg text-success-text border-success-bg',
-  NEGADO: 'bg-danger-bg text-danger-text border-danger-bg',
+const statusStyles: Record<string, { bg: string; text: string; dot: string }> = {
+  Pendente:               { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
+  Fabricado:              { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  Parcial:                { bg: '#ffedd5', text: '#9a3412', dot: '#ea580c' },
+  Aguardando:             { bg: '#e0e7ff', text: '#3730a3', dot: '#0ea5e9' },
+  Autorizado:             { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  Negado:                 { bg: '#fee2e2', text: '#991b1b', dot: '#dc2626' },
+  Vencido:                { bg: '#fee2e2', text: '#991b1b', dot: '#dc2626' },
+  Pago:                   { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  SOLICITADO:             { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
+  'EM ORCAMENTO':         { bg: '#e0e7ff', text: '#3730a3', dot: '#0ea5e9' },
+  AGUARDANDO_AUTORIZACAO: { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
+  AUTORIZADO:             { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  NO_FINANCEIRO:          { bg: '#eff6ff', text: '#1e40af', dot: '#2563eb' },
+  PAGO:                   { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  NEGADO:                 { bg: '#fee2e2', text: '#991b1b', dot: '#dc2626' },
   // Carregamento
-  'Em Carregamento': 'bg-info-bg text-info-text border-info-bg',
-  Carregado: 'bg-primary-bg text-primary border-primary-bg',
-  Entregue: 'bg-success-bg text-success-text border-success-bg',
+  'Em Carregamento':      { bg: '#e0e7ff', text: '#3730a3', dot: '#0ea5e9' },
+  Carregado:              { bg: '#eff6ff', text: '#1e40af', dot: '#2563eb' },
+  Entregue:               { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
   // Materiais
-  Entrada: 'bg-success-bg text-success-text border-success-bg',
-  Saida: 'bg-warning-bg text-warning-text border-warning-bg',
+  Entrada:                { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  Saida:                  { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
   // Ferramentas
-  Disponivel: 'bg-success-bg text-success-text border-success-bg',
-  Emprestada: 'bg-warning-bg text-warning-text border-warning-bg',
-  Manutencao: 'bg-danger-bg text-danger-text border-danger-bg',
+  Disponivel:             { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
+  Emprestada:             { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
+  Manutencao:             { bg: '#fee2e2', text: '#991b1b', dot: '#dc2626' },
+  // Obras
+  'Em Andamento':         { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
+  Concluida:              { bg: '#dcfce7', text: '#166534', dot: '#16a34a' },
   // Prioridade
-  Baixa: 'bg-info-bg text-info-text border-info-bg',
-  Media: 'bg-warning-bg text-warning-text border-warning-bg',
-  Alta: 'bg-danger-bg text-danger-text border-danger-bg',
+  Baixa:                  { bg: '#e0e7ff', text: '#3730a3', dot: '#0ea5e9' },
+  Media:                  { bg: '#fef3c7', text: '#92400e', dot: '#d97706' },
+  Alta:                   { bg: '#fee2e2', text: '#991b1b', dot: '#dc2626' },
 };
+
+const DEFAULT = { bg: '#f3f4f6', text: '#374151', dot: '#6b7280' };
 
 interface StatusBadgeProps {
   status: string;
@@ -37,9 +42,31 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status, className = '' }: StatusBadgeProps) {
-  const style = statusStyles[status] || 'bg-surface-container text-text-secondary border-surface-container';
+  const s = statusStyles[status] ?? DEFAULT;
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border ${style} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 ${className}`}
+      style={{
+        padding: '2px 8px 2px 7px',
+        borderRadius: '16px',
+        fontSize: '12px',
+        fontWeight: 500,
+        lineHeight: '18px',
+        background: s.bg,
+        color: s.text,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span
+        style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: s.dot,
+          flexShrink: 0,
+          display: 'inline-block',
+        }}
+      />
       {status}
     </span>
   );

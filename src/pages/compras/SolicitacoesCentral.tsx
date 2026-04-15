@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Plus, X, ChevronLeft, ChevronRight, Eye, Send, FileText } from 'lucide-react';
+import { Search, Plus, ChevronLeft, ChevronRight, Eye, Send, FileText } from 'lucide-react';
 import KPICard from '../../components/shared/KPICard';
 import StatusBadge from '../../components/shared/StatusBadge';
 import EmptyState from '../../components/shared/EmptyState';
+import Slideout from '../../components/shared/Slideout';
 import { solicitacoesCompra as solicitacoesCompraApi, obras as obrasApi, fornecedores as fornecedoresApi } from '../../lib/api';
 import { getCurrentUser } from '../../lib/storage';
 import type { SolicitacaoCompra, Obra, Fornecedor } from '../../lib/types';
@@ -286,142 +287,181 @@ export default function SolicitacoesCentral() {
         )}
       </div>
 
-      {/* Modal Nova Solicitacao */}
-      {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 'var(--z-modal)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', padding: '16px' }}>
-          <div className="modal-card w-full" style={{ maxWidth: '560px', padding: '32px' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
-              <h2 className="font-extrabold text-text-primary" style={{ fontSize: '20px' }}>Nova Solicitacao de Compra</h2>
-              <button onClick={() => setModalOpen(false)} className="text-text-muted hover:text-text-primary"><X size={20} /></button>
+      {/* Slideout Nova Solicitação */}
+      <Slideout
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Nova Solicitação de Compra"
+        subtitle="Preencha os dados para abrir a solicitação"
+        footer={
+          <>
+            <button onClick={() => setModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+              Cancelar
+            </button>
+            <button onClick={handleNovaSolicitacao} style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'var(--color-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+              className="hover:opacity-90 transition-opacity">
+              Criar solicitação
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {[
+            { label: 'Obra', node: (
+              <select value={formObraId} onChange={e => setFormObraId(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
+                <option value="">Selecione a obra</option>
+                {obras.map(o => <option key={o.id} value={o.id}>{o.nome}</option>)}
+              </select>
+            )},
+            { label: 'Material / Item', node: (
+              <input type="text" value={formItem} onChange={e => setFormItem(e.target.value)} placeholder="Ex: Cimento CP-V ARI" className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }} />
+            )},
+          ].map(({ label, node }) => (
+            <div key={label}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>{label}</label>
+              {node}
             </div>
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Obra</label>
-                <select value={formObraId} onChange={e => setFormObraId(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}>
-                  <option value="">Selecione a obra</option>
-                  {obras.map(o => <option key={o.id} value={o.id}>{o.nome}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Material / Item</label>
-                <input type="text" value={formItem} onChange={e => setFormItem(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }} placeholder="Ex: Cimento CP-V ARI" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Quantidade</label>
-                  <input type="number" value={formQtd} onChange={e => setFormQtd(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }} />
-                </div>
-                <div>
-                  <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Unidade</label>
-                  <select value={formUnidade} onChange={e => setFormUnidade(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}>
-                    <option value="un">Unidade</option>
-                    <option value="kg">Kg</option>
-                    <option value="m">Metro</option>
-                    <option value="m2">m²</option>
-                    <option value="m3">m³</option>
-                    <option value="saco">Saco</option>
-                    <option value="litro">Litro</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Prioridade</label>
-                <select value={formPrioridade} onChange={e => setFormPrioridade(e.target.value as 'Baixa' | 'Media' | 'Alta')} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}>
-                  <option value="Baixa">Baixa</option>
-                  <option value="Media">Media</option>
-                  <option value="Alta">Alta</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Observacoes</label>
-                <textarea value={formObs} onChange={e => setFormObs(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px', minHeight: '80px', resize: 'vertical' }} />
-              </div>
+          ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Quantidade</label>
+              <input type="number" value={formQtd} onChange={e => setFormQtd(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }} />
             </div>
-            <div className="flex justify-end gap-3" style={{ marginTop: '24px' }}>
-              <button onClick={() => setModalOpen(false)} className="text-text-secondary font-bold hover:bg-surface-container-high/60" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Cancelar</button>
-              <button onClick={handleNovaSolicitacao} className="bg-primary text-white font-bold hover:opacity-90" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Criar Solicitacao</button>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Unidade</label>
+              <select value={formUnidade} onChange={e => setFormUnidade(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
+                <option value="un">Unidade</option>
+                <option value="kg">Kg</option>
+                <option value="m">Metro</option>
+                <option value="m2">m²</option>
+                <option value="m3">m³</option>
+                <option value="saco">Saco</option>
+                <option value="litro">Litro</option>
+              </select>
             </div>
           </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Prioridade</label>
+            <select value={formPrioridade} onChange={e => setFormPrioridade(e.target.value as 'Baixa' | 'Media' | 'Alta')} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
+              <option value="Baixa">Baixa</option>
+              <option value="Media">Média</option>
+              <option value="Alta">Alta</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Observações</label>
+            <textarea value={formObs} onChange={e => setFormObs(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px', minHeight: '80px', resize: 'vertical' }} />
+          </div>
         </div>
-      )}
+      </Slideout>
 
-      {/* Modal Orcamento */}
-      {orcModalOpen && selectedSolic && (
-        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 'var(--z-modal)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', padding: '16px' }}>
-          <div className="modal-card w-full" style={{ maxWidth: '560px', padding: '32px' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
-              <h2 className="font-extrabold text-text-primary" style={{ fontSize: '20px' }}>Adicionar Orcamento</h2>
-              <button onClick={() => setOrcModalOpen(false)} className="text-text-muted hover:text-text-primary"><X size={20} /></button>
+      {/* Slideout Orçamento */}
+      <Slideout
+        open={orcModalOpen && !!selectedSolic}
+        onClose={() => setOrcModalOpen(false)}
+        title="Adicionar Orçamento"
+        subtitle={selectedSolic ? `${selectedSolic.item} — ${selectedSolic.obraNome}` : ''}
+        footer={
+          <>
+            <button onClick={() => setOrcModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+              Cancelar
+            </button>
+            <button onClick={handleSalvarOrcamento} style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'var(--color-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+              className="hover:opacity-90 transition-opacity">
+              Salvar orçamento
+            </button>
+          </>
+        }
+      >
+        {selectedSolic && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ background: 'var(--color-surface)', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '14px 16px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{selectedSolic.item}</p>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '3px' }}>{selectedSolic.obraNome} · {selectedSolic.quantidade} {selectedSolic.unidade}</p>
             </div>
-            <div className="bg-surface-container-low rounded-xl" style={{ padding: '16px', marginBottom: '20px' }}>
-              <p className="font-bold text-text-primary" style={{ fontSize: '14px' }}>{selectedSolic.item}</p>
-              <p className="text-text-muted" style={{ fontSize: '12px', marginTop: '4px' }}>{selectedSolic.obraNome} — {selectedSolic.quantidade} {selectedSolic.unidade}</p>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Fornecedor</label>
+              <select value={orcFornecedor} onChange={e => setOrcFornecedor(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
+                <option value="">Selecione</option>
+                {fornecedores.map(f => <option key={f.id} value={f.nome}>{f.nome}</option>)}
+              </select>
             </div>
-            <div className="flex flex-col gap-4">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Fornecedor</label>
-                <select value={orcFornecedor} onChange={e => setOrcFornecedor(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Valor (R$)</label>
+                <input type="number" value={orcValor} onChange={e => setOrcValor(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Forma de Pagamento</label>
+                <select value={orcPagamento} onChange={e => setOrcPagamento(e.target.value)} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }}>
                   <option value="">Selecione</option>
-                  {fornecedores.map(f => <option key={f.id} value={f.nome}>{f.nome}</option>)}
+                  <option value="Boleto">Boleto</option>
+                  <option value="PIX">PIX</option>
+                  <option value="Transferencia">Transferência</option>
+                  <option value="Cartao">Cartão</option>
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Valor (R$)</label>
-                  <input type="number" value={orcValor} onChange={e => setOrcValor(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }} />
-                </div>
-                <div>
-                  <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Forma de Pagamento</label>
-                  <select value={orcPagamento} onChange={e => setOrcPagamento(e.target.value)} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }}>
-                    <option value="">Selecione</option>
-                    <option value="Boleto">Boleto</option>
-                    <option value="PIX">PIX</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Cartao">Cartao</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="text-text-muted font-extrabold uppercase tracking-widest" style={{ fontSize: '11px' }}>Imagem da Cotacao</label>
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full bg-surface-container-low border border-border" style={{ padding: '12px 20px', borderRadius: '10px', fontSize: '14px', marginTop: '6px' }} />
-                {orcImagem && <img src={orcImagem} alt="Cotacao" className="rounded-lg border border-border" style={{ marginTop: '8px', maxHeight: '120px', objectFit: 'contain' }} />}
-              </div>
             </div>
-            <div className="flex justify-end gap-3" style={{ marginTop: '24px' }}>
-              <button onClick={() => setOrcModalOpen(false)} className="text-text-secondary font-bold" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Cancelar</button>
-              <button onClick={handleSalvarOrcamento} className="bg-primary text-white font-bold hover:opacity-90" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Salvar Orcamento</button>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Imagem da Cotação</label>
+              <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full border border-border-light bg-white" style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '14px' }} />
+              {orcImagem && <img src={orcImagem} alt="Cotação" className="rounded-lg border border-border" style={{ marginTop: '8px', maxHeight: '120px', objectFit: 'contain' }} />}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Slideout>
 
-      {/* Modal Detalhes */}
-      {detailModalOpen && detailSolic && (
-        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 'var(--z-modal)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', padding: '16px' }}>
-          <div className="modal-card w-full" style={{ maxWidth: '480px', padding: '32px' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
-              <h2 className="font-extrabold text-text-primary" style={{ fontSize: '20px' }}>Detalhes da Solicitacao</h2>
-              <button onClick={() => setDetailModalOpen(false)} className="text-text-muted hover:text-text-primary"><X size={20} /></button>
+      {/* Slideout Detalhes */}
+      <Slideout
+        open={detailModalOpen && !!detailSolic}
+        onClose={() => setDetailModalOpen(false)}
+        title="Detalhes da Solicitação"
+        width={440}
+        footer={
+          <button onClick={() => setDetailModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'var(--color-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+            Fechar
+          </button>
+        }
+      >
+        {detailSolic && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {[
+              { label: 'Item', value: detailSolic.item, bold: true },
+              { label: 'Obra', value: detailSolic.obraNome },
+              { label: 'Quantidade', value: `${detailSolic.quantidade} ${detailSolic.unidade}` },
+              { label: 'Solicitante', value: detailSolic.solicitante },
+              { label: 'Data', value: detailSolic.data },
+              ...(detailSolic.fornecedor ? [{ label: 'Fornecedor', value: detailSolic.fornecedor }] : []),
+              ...(detailSolic.valor > 0 ? [{ label: 'Valor', value: formatCurrency(detailSolic.valor), bold: true }] : []),
+            ].map(({ label, value, bold }) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{label}</span>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-primary)', fontWeight: bold ? 600 : 400 }}>{value}</span>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Prioridade</span>
+              <StatusBadge status={detailSolic.prioridade} />
             </div>
-            <div className="flex flex-col gap-3" style={{ fontSize: '14px' }}>
-              <div className="flex justify-between"><span className="text-text-muted">Item:</span><span className="font-bold text-text-primary">{detailSolic.item}</span></div>
-              <div className="flex justify-between"><span className="text-text-muted">Obra:</span><span className="text-text-primary">{detailSolic.obraNome}</span></div>
-              <div className="flex justify-between"><span className="text-text-muted">Quantidade:</span><span className="text-text-primary">{detailSolic.quantidade} {detailSolic.unidade}</span></div>
-              <div className="flex justify-between"><span className="text-text-muted">Prioridade:</span><StatusBadge status={detailSolic.prioridade} /></div>
-              <div className="flex justify-between"><span className="text-text-muted">Solicitante:</span><span className="text-text-primary">{detailSolic.solicitante}</span></div>
-              <div className="flex justify-between"><span className="text-text-muted">Data:</span><span className="text-text-primary">{detailSolic.data}</span></div>
-              <div className="flex justify-between"><span className="text-text-muted">Status:</span><StatusBadge status={detailSolic.statusFluxo} /></div>
-              {detailSolic.fornecedor && <div className="flex justify-between"><span className="text-text-muted">Fornecedor:</span><span className="text-text-primary">{detailSolic.fornecedor}</span></div>}
-              {detailSolic.valor > 0 && <div className="flex justify-between"><span className="text-text-muted">Valor:</span><span className="font-bold text-text-primary">{formatCurrency(detailSolic.valor)}</span></div>}
-              {detailSolic.observacoes && <div><span className="text-text-muted">Observacoes:</span><p className="text-text-primary" style={{ marginTop: '4px' }}>{detailSolic.observacoes}</p></div>}
-              {detailSolic.imagemOrcamento && <div><span className="text-text-muted">Cotacao:</span><img src={detailSolic.imagemOrcamento} alt="Cotacao" className="rounded-lg border border-border" style={{ marginTop: '8px', maxHeight: '200px', objectFit: 'contain' }} /></div>}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Status</span>
+              <StatusBadge status={detailSolic.statusFluxo} />
             </div>
-            <div className="flex justify-end" style={{ marginTop: '24px' }}>
-              <button onClick={() => setDetailModalOpen(false)} className="bg-primary text-white font-bold" style={{ padding: '12px 24px', borderRadius: '10px', fontSize: '13px' }}>Fechar</button>
-            </div>
+            {detailSolic.observacoes && (
+              <div style={{ padding: '12px 0' }}>
+                <p style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Observações</p>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>{detailSolic.observacoes}</p>
+              </div>
+            )}
+            {detailSolic.imagemOrcamento && (
+              <div style={{ padding: '12px 0' }}>
+                <p style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>Cotação</p>
+                <img src={detailSolic.imagemOrcamento} alt="Cotação" className="rounded-lg border border-border" style={{ maxHeight: '200px', objectFit: 'contain' }} />
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </Slideout>
     </div>
   );
 }
